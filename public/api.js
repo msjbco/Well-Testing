@@ -1,5 +1,6 @@
 // API utility functions for communicating with the backend
-const API_BASE_URL = 'http://localhost:3003/api';
+// Use relative URL for Vercel deployment (works both locally and on Vercel)
+const API_BASE_URL = '/api';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
