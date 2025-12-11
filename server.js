@@ -119,7 +119,7 @@ try {
 }
 
 const app = express();
-const PORT = 3003;
+const PORT = process.env.PORT || 3003;
 // DATA_DIR is now imported from utils/dataFiles.js
 
 // Initialize Supabase client (optional - will gracefully fail if env vars missing)
