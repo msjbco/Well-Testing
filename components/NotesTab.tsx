@@ -53,7 +53,7 @@ export default function NotesTab({
             notes: notes,
             recommendations: recommendations,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
       
@@ -77,7 +77,7 @@ export default function NotesTab({
             notes: notes,
             recommendations: recommendations,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 

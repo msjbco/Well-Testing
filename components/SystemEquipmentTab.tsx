@@ -109,7 +109,7 @@ export default function SystemEquipmentTab({
             job_id: jobId,
             system_equipment: saveData,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 

@@ -71,7 +71,7 @@ export default function WaterQualityTab({
             job_id: jobId,
             water_quality: dataToSave,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
       
@@ -132,7 +132,7 @@ export default function WaterQualityTab({
             job_id: jobId,
             water_quality: data,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 

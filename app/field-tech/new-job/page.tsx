@@ -139,7 +139,7 @@ export default function NewJobPage() {
           state: formData.state || null,
           zip: formData.zip || null,
           county: formData.county || null,
-          role: formData.userRole === 'other' ? formData.otherRoleText : (formData.userRole || formData.role || null),
+          role: formData.userRole === 'other' ? formData.otherRoleText : (formData.userRole || null),
           notes: formData.notes || null,
           wellPermitNumber: formData.wellPermitNumber || null,
           hasCistern: formData.hasCistern || null,
@@ -147,20 +147,22 @@ export default function NewJobPage() {
           willBePresent: formData.willBePresent || null,
           accessInstructions: formData.willBePresent === 'no' ? (formData.accessInstructions || null) : null,
           scheduledDate: formData.scheduledDate ? (formData.scheduledDate.includes('T') ? `${formData.scheduledDate}:00` : `${formData.scheduledDate}T00:00:00`) : null,
-        })
+        } as any)
         .select()
         .single();
 
       if (jobError) throw jobError;
 
+      const job = newJob as any;
+
       // Auto-create well_reports entry
       const { error: reportError } = await supabase.from('well_reports').insert({
-        job_id: newJob.id,
+        job_id: job.id,
         flow_readings: [],
         water_quality: {},
         photos: [],
         notes: '',
-      });
+      } as any);
 
       if (reportError) {
         console.error('Error creating report:', reportError);
@@ -168,7 +170,7 @@ export default function NewJobPage() {
       }
 
       toast.success('Job created successfully!');
-      router.push(`/field-tech/${newJob.id}/edit`);
+      router.push(`/field-tech/${job.id}/edit`);
     } catch (error: any) {
       console.error('Error creating job:', error);
       toast.error(error.message || 'Failed to create job');

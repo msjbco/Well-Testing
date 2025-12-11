@@ -88,19 +88,22 @@ export default function EditJobPage() {
           reportData = newReport;
         }
 
+        // Type assertion for reportData
+        const report = reportData as any;
+
         // Filter out blob URLs from photos when loading
-        const photos = (reportData?.photos || []).filter((p: any) => 
+        const photos = (report?.photos || []).filter((p: any) => 
           p.url && !p.url.startsWith('blob:') && !p.url.startsWith('data:')
         );
         
         setReport({
-          flow_readings: reportData?.flow_readings || [],
-          water_quality: reportData?.water_quality || {},
+          flow_readings: report?.flow_readings || [],
+          water_quality: report?.water_quality || {},
           photos: photos,
-          notes: reportData?.notes || '',
-          recommendations: reportData?.recommendations || '',
-          well_basics: reportData?.well_basics || {},
-          system_equipment: reportData?.system_equipment || {},
+          notes: report?.notes || '',
+          recommendations: report?.recommendations || '',
+          well_basics: report?.well_basics || {},
+          system_equipment: report?.system_equipment || {},
         });
       } catch (error: any) {
         console.error('Error loading data:', error);
@@ -126,19 +129,20 @@ export default function EditJobPage() {
         (payload) => {
           console.log('Report changed:', payload);
           if (payload.new) {
+            const newData = payload.new as any;
             // Filter out blob URLs from photos - only keep real URLs
-            const photos = (payload.new.photos || []).filter((p: any) => 
+            const photos = (newData.photos || []).filter((p: any) => 
               p.url && !p.url.startsWith('blob:') && !p.url.startsWith('data:')
             );
             
             setReport({
-              flow_readings: payload.new.flow_readings || [],
-              water_quality: payload.new.water_quality || {},
+              flow_readings: newData.flow_readings || [],
+              water_quality: newData.water_quality || {},
               photos: photos,
-              notes: payload.new.notes || '',
-              recommendations: payload.new.recommendations || '',
-              well_basics: payload.new.well_basics || {},
-              system_equipment: payload.new.system_equipment || {},
+              notes: newData.notes || '',
+              recommendations: newData.recommendations || '',
+              well_basics: newData.well_basics || {},
+              system_equipment: newData.system_equipment || {},
             });
           }
         }
@@ -184,19 +188,21 @@ export default function EditJobPage() {
         throw new Error('Report not found');
       }
 
+      const report = currentReport as any;
+
       // Upsert to ensure everything is synced
       const { error } = await supabase
         .from('well_reports')
         .upsert(
           {
             job_id: jobId,
-            flow_readings: currentReport.flow_readings || [],
-            water_quality: currentReport.water_quality || {},
-            photos: currentReport.photos || [],
-            notes: currentReport.notes || '',
-            recommendations: currentReport.recommendations || '',
-            well_basics: currentReport.well_basics || {},
-            system_equipment: currentReport.system_equipment || {},
+            flow_readings: report.flow_readings || [],
+            water_quality: report.water_quality || {},
+            photos: report.photos || [],
+            notes: report.notes || '',
+            recommendations: report.recommendations || '',
+            well_basics: report.well_basics || {},
+            system_equipment: report.system_equipment || {},
             updated_at: new Date().toISOString(),
           } as any,
           { onConflict: 'job_id' }

@@ -67,18 +67,18 @@ export default function FieldTechHomePage() {
         if (jobsError) throw jobsError;
 
         // Filter incomplete, non-archived jobs assigned to this tech
-        const incompleteJobs = jobsData?.filter(
-          (job) =>
+        const incompleteJobs = (jobsData?.filter(
+          (job: any) =>
             !job.archived && // Exclude archived jobs
             job.status !== 'completed' &&
             (job.assigned_tech_id === user.id || !job.assigned_tech_id)
-        ) || [];
+        ) || []) as any[];
 
         // Load status badges for each job
         const jobsWithStatus: JobWithStatus[] = [];
         for (const job of incompleteJobs) {
           const badge = await getStatusBadge(job as Job);
-          jobsWithStatus.push({ ...job, statusBadge: badge });
+          jobsWithStatus.push({ ...(job as any), statusBadge: badge });
         }
 
         setJobs(jobsWithStatus);
@@ -176,10 +176,11 @@ export default function FieldTechHomePage() {
         return { text: 'Not Started', color: 'bg-gray-500' };
       }
 
-      const hasFlow = report.flow_readings && report.flow_readings.length > 0;
-      const hasWaterQuality = report.water_quality && Object.keys(report.water_quality).length > 0;
-      const hasPhotos = report.photos && report.photos.length > 0;
-      const hasNotes = report.notes && report.notes.trim().length > 0;
+      const reportData = report as any;
+      const hasFlow = reportData.flow_readings && reportData.flow_readings.length > 0;
+      const hasWaterQuality = reportData.water_quality && Object.keys(reportData.water_quality).length > 0;
+      const hasPhotos = reportData.photos && reportData.photos.length > 0;
+      const hasNotes = reportData.notes && reportData.notes.trim().length > 0;
 
       const completed = [hasFlow, hasWaterQuality, hasPhotos, hasNotes].filter(Boolean).length;
       const total = 4;
@@ -226,29 +227,28 @@ export default function FieldTechHomePage() {
 
       const clientName = `${editFormData.firstName} ${editFormData.lastName}`.trim();
 
-      const { error } = await supabase
-        .from('jobs')
-        .update({
-          address: fullAddress,
-          client_name: clientName,
-          firstName: editFormData.firstName || null,
-          lastName: editFormData.lastName || null,
-          email: editFormData.email || null,
-          phone: editFormData.phone || null,
-          city: editFormData.city || null,
-          state: editFormData.state || null,
-          zip: editFormData.zip || null,
-          county: editFormData.county || null,
-          role: editFormData.userRole === 'other' ? editFormData.otherRoleText : (editFormData.userRole || null),
-          notes: editFormData.notes || null,
-          wellPermitNumber: editFormData.wellPermitNumber || null,
-          hasCistern: editFormData.hasCistern || null,
-          equipmentInspection: editFormData.equipmentInspection ? 'yes' : null,
-          willBePresent: editFormData.willBePresent || null,
-          accessInstructions: editFormData.willBePresent === 'no' ? (editFormData.accessInstructions || null) : null,
-          scheduledDate: editFormData.scheduledDate ? (editFormData.scheduledDate.includes('T') ? `${editFormData.scheduledDate}:00` : `${editFormData.scheduledDate}T00:00:00`) : null,
-        })
-        .eq('id', editingJob.id);
+      const updateData: any = {
+        address: fullAddress,
+        client_name: clientName,
+        firstName: editFormData.firstName || null,
+        lastName: editFormData.lastName || null,
+        email: editFormData.email || null,
+        phone: editFormData.phone || null,
+        city: editFormData.city || null,
+        state: editFormData.state || null,
+        zip: editFormData.zip || null,
+        county: editFormData.county || null,
+        role: editFormData.userRole === 'other' ? editFormData.otherRoleText : (editFormData.userRole || null),
+        notes: editFormData.notes || null,
+        wellPermitNumber: editFormData.wellPermitNumber || null,
+        hasCistern: editFormData.hasCistern || null,
+        equipmentInspection: editFormData.equipmentInspection ? 'yes' : null,
+        willBePresent: editFormData.willBePresent || null,
+        accessInstructions: editFormData.willBePresent === 'no' ? (editFormData.accessInstructions || null) : null,
+        scheduledDate: editFormData.scheduledDate ? (editFormData.scheduledDate.includes('T') ? `${editFormData.scheduledDate}:00` : `${editFormData.scheduledDate}T00:00:00`) : null,
+      };
+
+      const { error } = await ((supabase.from('jobs') as any).update(updateData).eq('id', editingJob.id));
 
       if (error) throw error;
 

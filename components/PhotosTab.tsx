@@ -147,14 +147,14 @@ export default function PhotosTab({
         });
 
       if (uploadError) {
+        const errorMessage = uploadError.message || '';
         console.error('Upload error:', {
-          message: uploadError.message,
-          statusCode: uploadError.statusCode,
+          message: errorMessage,
           error: uploadError,
         });
         
         // If offline, Supabase will queue - show message
-        if (!navigator.onLine || uploadError.message?.includes('fetch') || uploadError.message?.includes('network')) {
+        if (!navigator.onLine || errorMessage.includes('fetch') || errorMessage.includes('network')) {
           toast.success(`${photo.label} saved locally - will upload when online`);
           setPhotos((prev) =>
             prev.map((p) =>
@@ -166,13 +166,13 @@ export default function PhotosTab({
         }
         
         // Check for specific error types
-        if (uploadError.message?.includes('new row violates row-level security') || 
-            uploadError.message?.includes('permission denied') ||
-            uploadError.statusCode === '403') {
+        if (errorMessage.includes('new row violates row-level security') || 
+            errorMessage.includes('permission denied') ||
+            errorMessage.includes('403')) {
           toast.error('Permission denied. Check storage policies in Supabase.');
           console.error('Storage policy error - run FIX-STORAGE-POLICIES.sql');
-        } else if (uploadError.message?.includes('Bucket not found') || 
-                   uploadError.statusCode === '404') {
+        } else if (errorMessage.includes('Bucket not found') || 
+                   errorMessage.includes('404')) {
           toast.error('Storage bucket not found. Create "well-report-photos" bucket in Supabase.');
         } else {
           toast.error(`Upload failed: ${uploadError.message || 'Unknown error'}`);
@@ -214,27 +214,29 @@ export default function PhotosTab({
           .map((p) => ({ label: p.label, url: p.url! }));
 
         // Save asynchronously without blocking UI
-        supabase
-          .from('well_reports')
-          .upsert(
-            {
-              job_id: jobId,
-              photos: photosData,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'job_id' }
-          )
-          .then(({ error: saveError }) => {
+        void (async () => {
+          try {
+            const { error: saveError } = await supabase
+              .from('well_reports')
+              .upsert(
+                {
+                  job_id: jobId,
+                  photos: photosData,
+                  updated_at: new Date().toISOString(),
+                } as any,
+                { onConflict: 'job_id' }
+              );
+            
             if (saveError) {
               console.error('Error saving photos to report:', saveError);
               toast.error('Photo uploaded but failed to save reference');
             } else {
               console.log('✅ Photos saved to report with public URLs:', photosData);
             }
-          })
-          .catch((error) => {
+          } catch (error: any) {
             console.error('Error saving photos:', error);
-          });
+          }
+        })();
 
         return updated;
       });
@@ -274,7 +276,7 @@ export default function PhotosTab({
             job_id: jobId,
             photos: photosData,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 
@@ -505,7 +507,9 @@ export default function PhotosTab({
             )}
 
             <input
-              ref={(el) => (fileInputRefs.current[photo.id] = el)}
+              ref={(el) => {
+                if (el) fileInputRefs.current[photo.id] = el;
+              }}
               type="file"
               accept="image/*"
               capture="environment"

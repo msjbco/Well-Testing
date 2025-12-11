@@ -55,7 +55,7 @@ export default function WellBasicsTab({
             job_id: jobId,
             well_basics: dataToSave,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 

@@ -96,7 +96,7 @@ export default function FlowTestTab({
             job_id: jobId,
             flow_readings: readingsToSave,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
       
@@ -130,7 +130,7 @@ export default function FlowTestTab({
             job_id: jobId,
             flow_readings: readingsToSave,
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 
@@ -202,12 +202,20 @@ export default function FlowTestTab({
       }
     }
 
+    // Calculate volumes (in gallons)
+    const volume12hr = currentAverage * 60 * 12; // GPM * 60 min/hr * 12 hr
+    const volume24hr = currentAverage * 60 * 24; // GPM * 60 min/hr * 24 hr
+    const totalWaterDischarged = currentAverage * 60 * 24; // Same as 24hr for now
+
     return {
       readingsWithPercentChange,
       currentAverage,
       sustainedYield,
       peakFlow,
       avgPercentChangeFinal3,
+      volume12hr,
+      volume24hr,
+      totalWaterDischarged,
     };
   }, [flowReadings]);
 
