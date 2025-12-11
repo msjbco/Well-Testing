@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Detail | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Leaflet for map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .admin-header {
+      background: var(--navy);
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .admin-header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-header h1 {
+      color: white;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .admin-header .back-btn {
+      background: var(--brown);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .tech-detail-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+    .tech-info-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .tech-info-section h2 {
+      color: var(--navy);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--green);
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      color: var(--navy);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      font-size: 0.95rem;
+    }
+    .form-group input {
+      max-width: 400px;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .form-actions .btn {
+      max-width: 250px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+    }
+    .form-actions .btn:hover {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      transform: translateY(-2px);
+    }
+    .filters-section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .filters-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .filter-group label {
+      font-weight: 600;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .filter-group select,
+    .filter-group input {
+      padding: 0.6rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .filter-btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.6rem 1.2rem;
+      border: 2px solid var(--navy);
+      background: white;
+      color: var(--navy);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: var(--navy);
+      color: white;
+    }
+    .filter-btn:hover {
+      background: var(--green);
+      color: white;
+      border-color: var(--green);
+    }
+    .jobs-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .jobs-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .jobs-header h2 {
+      color: var(--navy);
+      margin: 0;
+    }
+    .toggle-map-btn {
+      background: var(--green);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .jobs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .job-line {
+      padding: 1rem 1.5rem;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .job-line:hover {
+      border-color: var(--green);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateX(4px);
+    }
+    .job-line-info {
+      flex: 1;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .job-line-address {
+      font-weight: 600;
+      color: var(--navy);
+      min-width: 200px;
+    }
+    .job-line-date {
+      color: var(--gray);
+      font-size: 0.9rem;
+      min-width: 150px;
+    }
+    .job-line-status {
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-complete {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-awaiting-payment {
+      background: #ffeaa7;
+      color: #6c5ce7;
+    }
+    .job-line-amount {
+      font-weight: 700;
+      color: var(--green);
+      font-size: 1.1rem;
+      min-width: 100px;
+      text-align: right;
+    }
+    .total-section {
+      background: #f4f0ea;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 2px solid var(--green);
+      margin-top: 2rem;
+    }
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-label {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .total-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .map-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      display: none;
+    }
+    .map-section.active {
+      display: block;
+    }
+    #jobsMap {
+      height: 500px;
+      width: 100%;
+      border-radius: 8px;
+    }
+    .toast {
+      position: fixed;
+      top: 100px;
+      right: 2rem;
+      background: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 10001;
+    }
+    .toast.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <!-- Check authentication -->
+  <script>
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = 'admin-login.html';
+    }
+  </script>
+
+  <div class="admin-header">
+    <div class="container">
+      <h1 id="techNameHeader">Tech Detail</h1>
+      <a href="admin-techs.html" class="back-btn">← Back to Techs</a>
+    </div>
+  </div>
+
+  <div class="tech-detail-container">
+    <!-- Tech Information Section -->
+    <div class="tech-info-section">
+      <h2>Tech Information</h2>
+      <form id="techInfoForm">
+        <div class="form-group">
+          <label for="techName">
+            Name <span style="color:red">*</span>
+          </label>
+          <input type="text" 
+                 id="techName" 
+                 required
+                 placeholder="Enter tech name">
+        </div>
+
+        <div class="form-group">
+          <label for="techEmail">
+            Email <span style="color:red">*</span>
+          </label>
+          <input type="email" 
+                 id="techEmail" 
+                 required
+                 placeholder="Enter tech email">
+        </div>
+
+        <div class="form-group">
+          <label for="techPhone">
+            Phone Number
+          </label>
+          <input type="tel" 
+                 id="techPhone" 
+                 placeholder="Enter phone number">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn" style="flex:1">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Earnings Period:</label>
+          <div class="filter-btn-group">
+            <button class="filter-btn" onclick="setEarningsFilter('alltime', this)">All Time</button>
+            <button class="filter-btn" onclick="setEarningsFilter('7days', this)">Past 7 Days</button>
+            <button class="filter-btn" onclick="setEarningsFilter('30days', this)">Past 30 Days</button>
+            <button class="filter-btn active" onclick="setEarningsFilter('mtd', this)">Month to Date</button>
+            <button class="filter-btn" onclick="setEarningsFilter('ytd', this)">Year to Date</button>
+            <button class="filter-btn" onclick="setEarningsFilter('custom', this)">Custom</button>
+          </div>
+        </div>
+      </div>
+      <div class="filters-row" id="customDateRange" style="display:none">
+        <div class="filter-group">
+          <label>From:</label>
+          <input type="date" id="customStartDate">
+        </div>
+        <div class="filter-group">
+          <label>To:</label>
+          <input type="date" id="customEndDate">
+        </div>
+        <button class="filter-btn" onclick="applyCustomDateRange()">Apply</button>
+      </div>
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Job Status:</label>
+          <div class="filter-btn-group">
+            <button class="filter-btn active" onclick="setStatusFilter('all', this)">All</button>
+            <button class="filter-btn" onclick="setStatusFilter('pending', this)">Pending</button>
+            <button class="filter-btn" onclick="setStatusFilter('complete', this)">Complete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section" id="mapSection">
+      <h2 style="color:var(--navy);margin-bottom:1rem">Jobs Map</h2>
+      <div id="jobsMap"></div>
+    </div>
+
+    <!-- Jobs Section -->
+    <div class="jobs-section">
+      <div class="jobs-header">
+        <h2>Jobs</h2>
+        <button class="toggle-map-btn" onclick="toggleMap()">Toggle Map</button>
+      </div>
+      <div class="jobs-list" id="jobsList">
+        <!-- Jobs will be loaded here -->
+      </div>
+      <div class="total-section">
+        <div class="total-line">
+          <span class="total-label">Total Earnings:</span>
+          <span class="total-amount" id="totalEarnings">$0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script src="api.js"></script>
+  <script>w3.includeHTML();</script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const techId = urlParams.get('techId');
+    
+    if (!techId) {
+      window.location.href = 'admin-techs.html';
+    }
+
+    let tech = null;
+    let allJobs = [];
+    let allReports = [];
+    let map = null;
+    let currentEarningsFilter = 'mtd';
+    let currentStatusFilter = 'all';
+    let customStartDate = null;
+    let customEndDate = null;
+
+    // Format phone number
+    function formatPhoneNumber(phone) {
+      if (!phone) return '';
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 10) {
+        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+      } else if (cleaned.length === 11 && cleaned[0] === '1') {
+        return `(${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+      }
+      return phone;
+    }
+
+    // Format currency
+    function formatCurrency(amount) {
+      return '$' + (amount || 0).toLocaleString();
+    }
+
+    // Calculate job price
+    function calculateJobPrice(job) {
+      let price = 0;
+
+      // Check services
+      if (job.services && Array.isArray(job.services)) {
+        if (job.services.includes('flow-test-bacteria')) {
+          price += 449;
+        } else if (job.services.includes('inspection-only')) {
+          price += 150;
+        }
+
+        // Count water quality tests ($50 each)
+        const waterTests = job.services.filter(s => 
+          ['bacteria', 'nitrate', 'full-panel', 'radon'].includes(s)
+        );
+        price += waterTests.length * 50;
+      } else if (job.totalPrice) {
+        // Use stored total price if available
+        price = job.totalPrice;
+      } else {
+        // Fallback: check if has flow test
+        if (!job.hasCistern || job.hasCistern === 'no') {
+          price = 449; // Default flow test + bacteria
+        } else if (job.equipmentInspection === 'yes') {
+          price = 150; // Inspection only
+        }
+      }
+
+      return price;
+    }
+
+    // Set earnings filter
+    function setEarningsFilter(filter, buttonElement) {
+      currentEarningsFilter = filter;
+      
+      // Update active button in earnings filter group
+      const earningsButtons = document.querySelectorAll('.filters-row:first-child .filter-btn');
+      earningsButtons.forEach(btn => {
+        btn.classList.remove('active');
+      });
+      if (buttonElement) {
+        buttonElement.classList.add('active');
+      }
+
+      if (filter === 'custom') {
+        document.getElementById('customDateRange').style.display = 'flex';
+      } else {
+        document.getElementById('customDateRange').style.display = 'none';
+        customStartDate = null;
+        customEndDate = null;
+      }
+
+      renderJobs();
+    }
+
+    // Apply custom date range
+    function applyCustomDateRange() {
+      customStartDate = document.getElementById('customStartDate').value;
+      customEndDate = document.getElementById('customEndDate').value;
+      renderJobs();
+    }
+
+    // Set status filter
+    function setStatusFilter(filter, buttonElement) {
+      currentStatusFilter = filter;
+      
+      // Update active button in status filter group
+      const statusButtons = document.querySelectorAll('.filters-row:last-child .filter-btn');
+      statusButtons.forEach(btn => {
+        btn.classList.remove('active');
+      });
+      if (buttonElement) {
+        buttonElement.classList.add('active');
+      }
+
+      renderJobs();
+    }
+
+    // Get date range based on filter
+    function getDateRange() {
+      const now = new Date();
+      let start = null;
+      let end = new Date();
+
+      switch (currentEarningsFilter) {
+        case 'alltime':
+          // No date filtering - return null to show all jobs
+          return { start: null, end: null };
+        case '7days':
+          start = new Date(now);
+          start.setDate(start.getDate() - 7);
+          break;
+        case '30days':
+          start = new Date(now);
+          start.setDate(start.getDate() - 30);
+          break;
+        case 'mtd':
+          start = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'ytd':
+          start = new Date(now.getFullYear(), 0, 1);
+          break;
+        case 'custom':
+          if (customStartDate) start = new Date(customStartDate);
+          if (customEndDate) end = new Date(customEndDate);
+          end.setHours(23, 59, 59, 999);
+          break;
+      }
+
+      return { start, end };
+    }
+
+    // Load tech and jobs
+    async function loadData() {
+      try {
+        // Load tech
+        const techs = await window.techsAPI.getAll();
+        tech = techs.find(t => t.id === techId);
+        
+        if (!tech) {
+          alert('Tech not found');
+          window.location.href = 'admin-techs.html';
+          return;
+        }
+
+        // Update header and form
+        document.getElementById('techNameHeader').textContent = tech.name + ' - Tech Detail';
+        document.getElementById('techName').value = tech.name;
+        document.getElementById('techEmail').value = tech.email;
+        document.getElementById('techPhone').value = tech.phone || '';
+
+        // Load jobs
+        allJobs = await window.jobsAPI.getAll();
+        allReports = await window.reportsAPI.getAll();
+
+        renderJobs();
+      } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Failed to load data: ' + error.message);
+      }
+    }
+
+    // Render jobs list
+    function renderJobs() {
+      // Filter jobs by tech
+      let techJobs = allJobs.filter(job => job.assignedTechId === techId);
+
+      // Apply date filter
+      const dateRange = getDateRange();
+      if (dateRange.start !== null && dateRange.end !== null) {
+        techJobs = techJobs.filter(job => {
+          if (!job.scheduledDate && !job.createdAt) return false;
+          const jobDate = new Date(job.scheduledDate || job.createdAt);
+          jobDate.setHours(0, 0, 0, 0);
+          const startDate = new Date(dateRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          const endDate = new Date(dateRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          return jobDate >= startDate && jobDate <= endDate;
+        });
+      }
+
+      // Apply status filter
+      if (currentStatusFilter !== 'all') {
+        techJobs = techJobs.filter(job => {
+          const status = (job.status || 'pending').toLowerCase();
+          if (currentStatusFilter === 'complete') {
+            return status === 'complete' || status === 'completed';
+          }
+          return status === currentStatusFilter;
+        });
+      }
+
+      // Sort by date (most recent first)
+      techJobs.sort((a, b) => {
+        const dateA = new Date(a.scheduledDate || a.createdAt || 0);
+        const dateB = new Date(b.scheduledDate || b.createdAt || 0);
+        return dateB - dateA;
+      });
+
+      // Calculate total
+      let total = 0;
+
+      // Render jobs
+      const jobsList = document.getElementById('jobsList');
+      if (techJobs.length === 0) {
+        jobsList.innerHTML = '<p style="color:var(--gray);text-align:center;padding:2rem">No jobs found for the selected filters.</p>';
+      } else {
+        jobsList.innerHTML = techJobs.map(job => {
+          const jobDate = job.scheduledDate 
+            ? new Date(job.scheduledDate).toLocaleDateString() 
+            : (job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'No date');
+          
+          const status = (job.status || 'pending').toLowerCase();
+          const statusClass = status === 'completed' ? 'complete' : status;
+          const statusText = status === 'completed' ? 'Complete' : 
+                            status === 'awaiting-payment' ? 'Awaiting Payment' :
+                            'Pending';
+          
+          const price = calculateJobPrice(job);
+          total += price;
+
+          return `
+            <div class="job-line" onclick="window.location.href='admin-job-detail.html?jobId=${job.id}'">
+              <div class="job-line-info">
+                <div class="job-line-address">${job.propertyAddress || 'No address'}${job.city ? ', ' + job.city : ''}</div>
+                <div class="job-line-date">${jobDate}</div>
+                <div class="job-line-status status-${statusClass}">${statusText}</div>
+              </div>
+              <div class="job-line-amount">${formatCurrency(price)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Update total
+      document.getElementById('totalEarnings').textContent = formatCurrency(total);
+
+      // Update map with filtered jobs (always update if map exists, or if map section is visible)
+      const mapSection = document.getElementById('mapSection');
+      if (map) {
+        updateMap(techJobs);
+      } else if (mapSection && mapSection.classList.contains('active')) {
+        // If map section is visible but map not initialized, initialize it
+        initializeMap();
+        // updateMap will be called after initialization
+        setTimeout(() => updateMap(techJobs), 100);
+      }
+    }
+
+    // Toggle map
+    function toggleMap() {
+      const mapSection = document.getElementById('mapSection');
+      mapSection.classList.toggle('active');
+      
+      if (mapSection.classList.contains('active') && !map) {
+        initializeMap();
+      }
+    }
+
+    // Initialize map
+    function initializeMap() {
+      if (map) return; // Don't re-initialize if already exists
+      
+      map = L.map('jobsMap').setView([39.7392, -104.9903], 7); // Default to Colorado center
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Get current filtered jobs and update map
+      let techJobs = allJobs.filter(job => job.assignedTechId === techId);
+      
+      // Apply current filters
+      const dateRange = getDateRange();
+      if (dateRange.start !== null && dateRange.end !== null) {
+        techJobs = techJobs.filter(job => {
+          if (!job.scheduledDate && !job.createdAt) return false;
+          const jobDate = new Date(job.scheduledDate || job.createdAt);
+          jobDate.setHours(0, 0, 0, 0);
+          const startDate = new Date(dateRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          const endDate = new Date(dateRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          return jobDate >= startDate && jobDate <= endDate;
+        });
+      }
+      
+      if (currentStatusFilter !== 'all') {
+        techJobs = techJobs.filter(job => {
+          const status = (job.status || 'pending').toLowerCase();
+          if (currentStatusFilter === 'complete') {
+            return status === 'complete' || status === 'completed';
+          }
+          return status === currentStatusFilter;
+        });
+      }
+      
+      updateMap(techJobs);
+    }
+
+    // Update map with jobs
+    function updateMap(jobs) {
+      if (!map) return;
+
+      // Clear existing markers (keep tile layer)
+      map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
+      });
+
+      const markers = [];
+      jobs.forEach(job => {
+        // Check for GPS coordinates in job or report data
+        let lat = null;
+        let lng = null;
+        
+        // Check if job has GPS coordinates directly
+        if (job.gpsLat && job.gpsLong) {
+          lat = parseFloat(job.gpsLat);
+          lng = parseFloat(job.gpsLong);
+        }
+        
+        // If not, try to get from report
+        if (!lat || !lng) {
+          const report = allReports.find(r => r.jobId === job.id);
+          if (report && report.data) {
+            if (report.data.gpsLat && report.data.gpsLong) {
+              lat = parseFloat(report.data.gpsLat);
+              lng = parseFloat(report.data.gpsLong);
+            }
+          }
+        }
+        
+        // Add marker if we have coordinates
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+          const marker = L.marker([lat, lng])
+            .bindPopup(`<strong>${job.propertyAddress || 'No address'}</strong><br>${job.city || ''}<br>${formatCurrency(calculateJobPrice(job))}`)
+            .addTo(map);
+          markers.push(marker);
+        }
+      });
+
+      // Fit map to show all markers
+      if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+      } else {
+        // If no markers, center on Colorado
+        map.setView([39.7392, -104.9903], 7);
+      }
+      
+      // Force map to invalidate size to ensure proper rendering
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize();
+        }
+      }, 100);
+    }
+
+    // Save tech info
+    document.getElementById('techInfoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const techData = {
+        name: document.getElementById('techName').value.trim(),
+        email: document.getElementById('techEmail').value.trim(),
+        phone: document.getElementById('techPhone').value.trim() || null
+      };
+
+      try {
+        await window.techsAPI.update(techId, techData);
+        showToast('Tech information updated successfully');
+        loadData();
+      } catch (error) {
+        console.error('Error updating tech:', error);
+        alert('Failed to update tech: ' + error.message);
+      }
+    });
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Load data on page load
+    loadData();
+  </script>
+</body>
+</html>
+

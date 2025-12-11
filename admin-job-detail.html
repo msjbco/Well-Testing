@@ -1,0 +1,3093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Well Report | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Hide any text content in w3-include-html div before header loads */
+    [w3-include-html] {
+      font-size: 0 !important;
+      line-height: 0 !important;
+      color: transparent !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      min-height: 0 !important;
+    }
+    [w3-include-html]::before,
+    [w3-include-html]::after {
+      content: none !important;
+      display: none !important;
+    }
+    [w3-include-html] > * {
+      font-size: initial;
+      line-height: normal;
+      color: initial;
+      visibility: visible;
+    }
+    [w3-include-html] header {
+      visibility: visible !important;
+      height: auto !important;
+      min-height: 80px !important;
+    }
+    
+    .admin-header {
+      background: var(--navy);
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .admin-header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-header h1 {
+      color: white;
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .admin-header .job-id {
+      font-family: monospace;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    .admin-header .back-btn {
+      background: var(--brown);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 1rem;
+    }
+    .report-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+    .form-section {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .form-section h2 {
+      color: var(--navy);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--green);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      color: var(--navy);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .form-group input,
+    .form-group select {
+      padding: 0.8rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .photo-upload-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .photo-slot {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      background: #f9f9f9;
+      position: relative;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .photo-slot.has-photo {
+      border-color: var(--green);
+      background: white;
+    }
+    .photo-slot img {
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .photo-slot .photo-caption {
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+    .photo-slot .photo-caption-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--navy);
+      margin-top: 0.5rem;
+      font-family: 'Inter', sans-serif;
+      background: white;
+    }
+    .photo-slot .photo-caption-input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .photo-slot .delete-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: none;
+    }
+    .photo-slot.has-photo .delete-btn {
+      display: block;
+    }
+    .photo-slot input[type="file"] {
+      display: none;
+    }
+    .photo-slot .upload-label {
+      cursor: pointer;
+      color: var(--green);
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--green);
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+    .flow-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    .flow-table th,
+    .flow-table td {
+      padding: 0.8rem;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    .flow-table th {
+      background: var(--navy);
+      color: white;
+      font-weight: 600;
+    }
+    .flow-table input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .calculated-results {
+      background: #f4f0ea;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .calculated-results .result-item {
+      text-align: center;
+    }
+    .calculated-results .result-label {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .calculated-results .result-value {
+      color: var(--navy);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .recovery-input {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .recovery-input input {
+      flex: 1;
+    }
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    #recommendations-editor {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #recommendations-editor .ql-editor {
+      min-height: 300px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+    }
+    #recommendations-editor .ql-container {
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      box-sizing: border-box;
+    }
+    #recommendations-editor .ql-toolbar {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      border: 2px solid #ddd;
+      border-bottom: none;
+      box-sizing: border-box;
+    }
+    #recommendations-editor .ql-container {
+      border: 2px solid #ddd;
+      border-top: none;
+      box-sizing: border-box;
+    }
+    #recommendations-editor .ql-editor {
+      box-sizing: border-box;
+    }
+    .generate-btn {
+      background: var(--green);
+      color: white;
+      padding: 1.5rem 3rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 2rem;
+    }
+    .generate-btn:hover {
+      background: #1f4d3a;
+    }
+    .toast {
+      position: fixed;
+      top: 100px;
+      right: 2rem;
+      background: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 10000;
+    }
+    .toast.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <!-- Check authentication -->
+  <script>
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = 'admin-login.html';
+    }
+  </script>
+
+  <div class="admin-header">
+    <div class="container">
+      <div>
+        <a href="admin-dashboard.html" class="back-btn">← Back to Dashboard</a>
+        <h1 id="jobAddress">Loading...</h1>
+        <div style="font-size:0.9rem;opacity:0.9;margin-top:0.5rem;display:flex;align-items:center;gap:0.5rem">
+          <span id="clientName"></span>
+          <button id="editJobBtn" onclick="console.log('Edit button clicked!'); console.log('openEditJobModal type:', typeof window.openEditJobModal); if (typeof window.openEditJobModal === 'function') { window.openEditJobModal(); } else { alert('openEditJobModal function not found! Check console.'); console.error('openEditJobModal is not a function:', typeof window.openEditJobModal, 'Available:', Object.keys(window).filter(k => k.includes('Edit'))); }" style="background:none;border:none;cursor:pointer;padding:0.25rem;display:inline-flex;align-items:center;color:var(--green);opacity:0.8;transition:opacity 0.2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'" title="Edit Job">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="job-id" id="jobIdDisplay">Job ID: Loading...</div>
+    </div>
+  </div>
+
+  <div class="report-container">
+    <form id="reportForm">
+      <!-- Photo Upload Section -->
+      <div class="form-section">
+        <h2>Photo Upload</h2>
+        <div class="photo-upload-grid" id="photoGrid">
+          <!-- Photo slots will be generated here -->
+        </div>
+      </div>
+
+      <!-- Well Basics -->
+      <div class="form-section">
+        <h2>Well Basics</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="wellPermit">Well Permit #</label>
+            <input type="text" id="wellPermit" name="wellPermit">
+          </div>
+          <div class="form-group">
+            <label for="totalDepth">Total Depth (ft)</label>
+            <input type="number" id="totalDepth" name="totalDepth" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="casingDepth">Casing Depth (ft)</label>
+            <input type="number" id="casingDepth" name="casingDepth" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="staticWaterLevel">Static Water Level (ft)</label>
+            <input type="number" id="staticWaterLevel" name="staticWaterLevel" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="gpsLat">GPS Latitude</label>
+            <input type="number" id="gpsLat" name="gpsLat" step="0.000001">
+          </div>
+          <div class="form-group">
+            <label for="gpsLong">GPS Longitude</label>
+            <input type="number" id="gpsLong" name="gpsLong" step="0.000001">
+          </div>
+          <div class="form-group">
+            <label for="wellHeadLocation">Well Head Location</label>
+            <input type="text" id="wellHeadLocation" name="wellHeadLocation" placeholder="e.g., Front yard, Backyard, Basement">
+          </div>
+          <div class="form-group">
+            <label for="coordinates">Coordinates</label>
+            <input type="text" id="coordinates" name="coordinates" placeholder="e.g., 39.7392, -104.9903 or 39.7392 -104.9903" onblur="parseCoordinates()">
+            <small style="color:var(--gray);font-size:0.85rem;margin-top:0.25rem;display:block">Enter latitude and longitude (comma or space separated). This will auto-fill GPS fields above.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flow & Yield Test -->
+      <div class="form-section">
+        <h2>Flow & Yield Test</h2>
+        <div style="margin-bottom:1rem">
+          <button type="button" onclick="addFlowRow()" style="background:var(--green);color:white;padding:0.6rem 1.2rem;border:none;border-radius:6px;font-weight:600;cursor:pointer;margin-bottom:1rem">+ Add Reading</button>
+        </div>
+        <table class="flow-table">
+          <thead>
+            <tr>
+              <th>Time (minutes)</th>
+              <th>GPM Reading</th>
+              <th>% Change</th>
+              <th style="width:80px">Action</th>
+            </tr>
+          </thead>
+          <tbody id="window.flowTableBody">
+            <!-- Rows will be generated here -->
+          </tbody>
+        </table>
+        <div class="calculated-results" id="calculatedResults">
+          <div class="result-item">
+            <div class="result-label">Sustained Yield</div>
+            <div class="result-value" id="sustainedYield">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Peak Flow</div>
+            <div class="result-value" id="peakFlow">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Average Flow Rate</div>
+            <div class="result-value" id="averageFlowRate">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Volume Yield (12 hr)</div>
+            <div class="result-value" id="volume12hr">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Volume Yield (24 hr)</div>
+            <div class="result-value" id="volume24hr">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">% Change (Final 3)</div>
+            <div class="result-value" id="percentChangeFinal3">--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Total Water Discharged</div>
+            <div class="result-value" id="totalWaterDischarged">--</div>
+          </div>
+          <div class="result-item" style="margin-top:1.5rem;padding-top:1.5rem;border-top:2px solid #ddd">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+              <div class="result-label">Pipe Diameter (inches):</div>
+              <input type="number" id="pipeDiameter" value="6" min="1" max="24" step="0.1" style="width:80px;padding:0.5rem;border:2px solid #ddd;border-radius:6px;font-size:1rem;text-align:center" onchange="calculateWaterColumn()">
+            </div>
+            <div class="result-label">Water Available in Column:</div>
+            <div class="result-value" id="waterColumnVolume">--</div>
+            <div id="waterColumnDetails" style="font-size:0.85rem;color:#666;margin-top:0.25rem"></div>
+          </div>
+        </div>
+        
+        <div style="margin-top:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div>
+            <label for="dischargeLocation" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">Location of Discharge</label>
+            <input type="text" id="dischargeLocation" name="dischargeLocation" placeholder="e.g., Front yard, Backyard, Drainage ditch" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+          </div>
+          <div>
+            <label for="sourceOfOutput" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">Source of Output</label>
+            <input type="text" id="sourceOfOutput" name="sourceOfOutput" placeholder="e.g., Well pump, Pressure tank, Spigot" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+          </div>
+        </div>
+        <div class="recovery-input">
+          <label>Pumped down to:</label>
+          <input type="number" id="pumpedDownTo" name="pumpedDownTo" step="0.1" placeholder="ft">
+          <label>Recovered in:</label>
+          <input type="number" id="recoveryTime" name="recoveryTime" step="0.1" placeholder="minutes">
+        </div>
+      </div>
+
+      <!-- System Equipment -->
+      <div class="form-section">
+        <h2>System Equipment</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pressureTankSize">Pressure Tank Size (gallons)</label>
+            <input type="number" id="pressureTankSize" name="pressureTankSize">
+          </div>
+          <div class="form-group">
+            <label for="prechargePSI">Pre-charge PSI</label>
+            <input type="number" id="prechargePSI" name="prechargePSI" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="storageTanks">Storage Tanks Total (gallons)</label>
+            <input type="number" id="storageTanks" name="storageTanks">
+          </div>
+          <div class="form-group">
+            <label for="pumpMakeModel">Pump Make/Model/HP</label>
+            <input type="text" id="pumpMakeModel" name="pumpMakeModel">
+          </div>
+          <div class="form-group">
+            <label for="pumpCondition">Pump Condition</label>
+            <select id="pumpCondition" name="pumpCondition">
+              <option value="">Select</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+              <option value="Not Visible">Not Visible</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pressureTankCondition">Pressure Tank Condition</label>
+            <select id="pressureTankCondition" name="pressureTankCondition">
+              <option value="">Select</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wiringCondition">Wiring Condition</label>
+            <select id="wiringCondition" name="wiringCondition">
+              <option value="">Select</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wellCapCondition">Well Cap Condition</label>
+            <select id="wellCapCondition" name="wellCapCondition">
+              <option value="">Select</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wellPumpLocation">Well Pump Location</label>
+            <input type="text" id="wellPumpLocation" name="wellPumpLocation" placeholder="e.g., Basement, Well house, Pit">
+          </div>
+          <div class="form-group">
+            <label for="waterTreatment">Water Treatment Equipment</label>
+            <select id="waterTreatment" name="waterTreatment" multiple style="min-height:100px">
+              <option value="">None</option>
+              <option value="Water Softener">Water Softener</option>
+              <option value="Reverse Osmosis System">Reverse Osmosis System</option>
+              <option value="Carbon Filter">Carbon Filter</option>
+              <option value="Sediment Filter">Sediment Filter</option>
+              <option value="Iron Filter">Iron Filter</option>
+              <option value="Manganese Filter">Manganese Filter</option>
+              <option value="UV Sterilizer">UV Sterilizer</option>
+              <option value="Chlorination System">Chlorination System</option>
+              <option value="Acid Neutralizer">Acid Neutralizer</option>
+              <option value="Arsenic Removal System">Arsenic Removal System</option>
+              <option value="Nitrate Removal System">Nitrate Removal System</option>
+              <option value="Whole House Filter">Whole House Filter</option>
+              <option value="Point of Use Filter">Point of Use Filter</option>
+              <option value="Aeration System">Aeration System</option>
+              <option value="Other">Other</option>
+            </select>
+            <small style="color:var(--gray);font-size:0.85rem;margin-top:0.25rem;display:block">Hold Ctrl/Cmd to select multiple</small>
+          </div>
+          <div class="form-group">
+            <label for="waterTreatmentOther">Treatment Equipment (Other)</label>
+            <input type="text" id="waterTreatmentOther" name="waterTreatmentOther" placeholder="Specify other treatment equipment">
+          </div>
+        </div>
+      </div>
+
+      <!-- Water Quality -->
+      <div class="form-section">
+        <h2>Water Quality</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="coliformEcoli">Coliform / E.coli</label>
+            <select id="coliformEcoli" name="coliformEcoli">
+              <option value="">Select</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nitrate">Nitrate (mg/L)</label>
+            <input type="number" id="nitrate" name="nitrate" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="arsenic">Arsenic (ppb)</label>
+            <input type="number" id="arsenic" name="arsenic" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="lead">Lead (ppb)</label>
+            <input type="number" id="lead" name="lead" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="iron">Iron (mg/L)</label>
+            <input type="number" id="iron" name="iron" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="manganese">Manganese (mg/L)</label>
+            <input type="number" id="manganese" name="manganese" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="hardness">Hardness (mg/L)</label>
+            <input type="number" id="hardness" name="hardness" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="ph">pH</label>
+            <input type="number" id="ph" name="ph" step="0.1" min="0" max="14">
+          </div>
+          <div class="form-group">
+            <label for="tds">TDS (mg/L)</label>
+            <input type="number" id="tds" name="tds" step="0.1">
+          </div>
+          <div class="form-group">
+            <label for="overallRating">Overall Rating</label>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
+              <label style="font-weight:normal;cursor:pointer">
+                <input type="radio" name="overallRating" value="Potable" style="margin-right:0.5rem"> Potable
+              </label>
+              <label style="font-weight:normal;cursor:pointer">
+                <input type="radio" name="overallRating" value="Potable with treatment" style="margin-right:0.5rem"> Potable with treatment
+              </label>
+              <label style="font-weight:normal;cursor:pointer">
+                <input type="radio" name="overallRating" value="Needs treatment" style="margin-right:0.5rem"> Needs treatment
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="form-section">
+        <h2>Recommendations</h2>
+        <div style="width:100%;overflow:hidden">
+          <div id="recommendations-editor" style="min-height:300px"></div>
+        </div>
+        <textarea id="recommendations" name="recommendations" style="display:none"></textarea>
+      </div>
+
+      <button type="submit" class="generate-btn">Generate & Preview Report</button>
+    </form>
+  </div>
+
+  <div class="toast" id="toast">Report saved successfully!</div>
+
+  <!-- Edit Job Modal -->
+  <div id="editJobModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;overflow-y:auto;padding:2rem">
+    <style>
+      /* Force enable all form fields in edit modal */
+      #editJobModal input:not([type="radio"]):not([type="checkbox"]),
+      #editJobModal select,
+      #editJobModal textarea {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        cursor: text !important;
+        background-color: white !important;
+        color: #000 !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+      }
+      #editJobModal input[type="radio"],
+      #editJobModal input[type="checkbox"] {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+      }
+      /* Override any disabled states */
+      #editJobModal input[disabled],
+      #editJobModal select[disabled],
+      #editJobModal textarea[disabled] {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        background-color: white !important;
+      }
+      #editJobModal input[readonly],
+      #editJobModal select[readonly],
+      #editJobModal textarea[readonly] {
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        background-color: white !important;
+      }
+    </style>
+    <div style="max-width:800px;margin:0 auto;background:white;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.3);padding:2rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1rem;border-bottom:2px solid #ddd">
+        <h2 style="color:var(--navy);margin:0;font-size:1.5rem">Edit Job</h2>
+        <button onclick="closeEditJobModal()" style="background:none;border:none;cursor:pointer;font-size:1.5rem;color:#666;padding:0.5rem;line-height:1" title="Close">&times;</button>
+      </div>
+
+      <form id="editJobForm" style="display:grid;gap:1.5rem" onsubmit="event.preventDefault(); saveEditJob(); return false;">
+        <!-- Client Name -->
+        <div class="form-group">
+          <label for="editFirstName">Client First Name <span style="color:red">*</span></label>
+          <input type="text" id="editFirstName" name="firstName" required placeholder="First Name" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <div class="form-group">
+          <label for="editLastName">Client Last Name <span style="color:red">*</span></label>
+          <input type="text" id="editLastName" name="lastName" required placeholder="Last Name" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <!-- Contact Info -->
+        <div class="form-group">
+          <label for="editEmail">Email</label>
+          <input type="email" id="editEmail" name="email" placeholder="email@example.com" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <div class="form-group">
+          <label for="editPhone">Phone</label>
+          <input type="tel" id="editPhone" name="phone" placeholder="(555) 123-4567" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label for="editPropertyAddress">Property Address <span style="color:red">*</span></label>
+          <input type="text" id="editPropertyAddress" name="propertyAddress" required placeholder="Enter street address" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label for="editCity">City</label>
+            <input type="text" id="editCity" name="city" placeholder="City" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+          </div>
+
+          <div class="form-group">
+            <label for="editState">State</label>
+            <input type="text" id="editState" name="state" maxlength="2" placeholder="CO" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+          </div>
+
+          <div class="form-group">
+            <label for="editZip">ZIP</label>
+            <input type="text" id="editZip" name="zip" maxlength="5" placeholder="80202" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+          </div>
+        </div>
+
+        <!-- County -->
+        <div class="form-group">
+          <label for="editCounty">County <span style="color:red">*</span></label>
+          <select id="editCounty" name="county" required style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+            <option value="">Select a county</option>
+            <option value="Adams">Adams</option>
+            <option value="Alamosa">Alamosa</option>
+            <option value="Arapahoe">Arapahoe</option>
+            <option value="Archuleta">Archuleta</option>
+            <option value="Baca">Baca</option>
+            <option value="Bent">Bent</option>
+            <option value="Boulder">Boulder</option>
+            <option value="Broomfield">Broomfield</option>
+            <option value="Chaffee">Chaffee</option>
+            <option value="Cheyenne">Cheyenne</option>
+            <option value="Clear Creek">Clear Creek</option>
+            <option value="Conejos">Conejos</option>
+            <option value="Costilla">Costilla</option>
+            <option value="Crowley">Crowley</option>
+            <option value="Custer">Custer</option>
+            <option value="Delta">Delta</option>
+            <option value="Denver">Denver</option>
+            <option value="Dolores">Dolores</option>
+            <option value="Douglas">Douglas</option>
+            <option value="Eagle">Eagle</option>
+            <option value="El Paso">El Paso</option>
+            <option value="Elbert">Elbert</option>
+            <option value="Fremont">Fremont</option>
+            <option value="Garfield">Garfield</option>
+            <option value="Gilpin">Gilpin</option>
+            <option value="Grand">Grand</option>
+            <option value="Gunnison">Gunnison</option>
+            <option value="Hinsdale">Hinsdale</option>
+            <option value="Huerfano">Huerfano</option>
+            <option value="Jackson">Jackson</option>
+            <option value="Jefferson">Jefferson</option>
+            <option value="Kiowa">Kiowa</option>
+            <option value="Kit Carson">Kit Carson</option>
+            <option value="La Plata">La Plata</option>
+            <option value="Lake">Lake</option>
+            <option value="Larimer">Larimer</option>
+            <option value="Las Animas">Las Animas</option>
+            <option value="Lincoln">Lincoln</option>
+            <option value="Logan">Logan</option>
+            <option value="Mesa">Mesa</option>
+            <option value="Mineral">Mineral</option>
+            <option value="Moffat">Moffat</option>
+            <option value="Montezuma">Montezuma</option>
+            <option value="Montrose">Montrose</option>
+            <option value="Morgan">Morgan</option>
+            <option value="Otero">Otero</option>
+            <option value="Ouray">Ouray</option>
+            <option value="Park">Park</option>
+            <option value="Phillips">Phillips</option>
+            <option value="Pitkin">Pitkin</option>
+            <option value="Prowers">Prowers</option>
+            <option value="Pueblo">Pueblo</option>
+            <option value="Rio Blanco">Rio Blanco</option>
+            <option value="Rio Grande">Rio Grande</option>
+            <option value="Routt">Routt</option>
+            <option value="Saguache">Saguache</option>
+            <option value="San Juan">San Juan</option>
+            <option value="San Miguel">San Miguel</option>
+            <option value="Sedgwick">Sedgwick</option>
+            <option value="Summit">Summit</option>
+            <option value="Teller">Teller</option>
+            <option value="Washington">Washington</option>
+            <option value="Weld">Weld</option>
+            <option value="Yuma">Yuma</option>
+          </select>
+        </div>
+
+        <!-- Client Role -->
+        <div class="form-group">
+          <label for="editUserRole">Client Role <span style="color:red">*</span></label>
+          <select id="editUserRole" name="userRole" required onchange="toggleEditOtherRoleInput()" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+            <option value="">Select one</option>
+            <option value="buyer">Buyer</option>
+            <option value="owner">Owner</option>
+            <option value="inspector">Inspector</option>
+            <option value="buyers-agent">Buyer's Agent</option>
+            <option value="sellers-agent">Seller's Agent</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="editOtherRoleInput" style="display:none">
+          <label for="editOtherRoleText">Please specify: <span style="color:red">*</span></label>
+          <input type="text" id="editOtherRoleText" name="otherRoleText" placeholder="Enter role" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <!-- Has Cistern -->
+        <div class="form-group">
+          <label>Is there a cistern or underground storage? <span style="color:red">*</span></label>
+          <div style="display:flex;gap:2rem;margin-top:0.5rem">
+            <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+              <input type="radio" name="editHasCistern" value="yes" id="editCisternYes" style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+              Yes
+            </label>
+            <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+              <input type="radio" name="editHasCistern" value="no" id="editCisternNo" style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+              No
+            </label>
+          </div>
+        </div>
+
+        <!-- Well Permit Number -->
+        <div class="form-group">
+          <label for="editWellPermitNumber">Well Permit # (Optional)</label>
+          <input type="text" id="editWellPermitNumber" name="wellPermitNumber" placeholder="Enter well permit number" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <!-- Will Be Present -->
+        <div class="form-group">
+          <label>Will someone be there to allow access? <span style="color:red">*</span></label>
+          <div style="display:flex;gap:2rem;margin-top:0.5rem">
+            <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+              <input type="radio" name="editWillBePresent" value="yes" id="editWillBePresentYes" onchange="handleEditAccessSelection('yes')" style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+              Yes
+            </label>
+            <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+              <input type="radio" name="editWillBePresent" value="no" id="editWillBePresentNo" onchange="handleEditAccessSelection('no')" style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+              No
+            </label>
+          </div>
+        </div>
+
+        <!-- Access Instructions -->
+        <div class="form-group" id="editAccessInstructionsGroup" style="display:none">
+          <label for="editAccessInstructions">Access Instructions <span style="color:red">*</span></label>
+          <textarea id="editAccessInstructions" name="accessInstructions" rows="3" placeholder="Enter access instructions..." style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem;font-family:'Inter',sans-serif;box-sizing:border-box;resize:vertical"></textarea>
+        </div>
+
+        <!-- Scheduled Date -->
+        <div class="form-group">
+          <label for="editScheduledDate">Scheduled Date (Optional)</label>
+          <input type="datetime-local" id="editScheduledDate" name="scheduledDate" style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-size:1rem">
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label for="editNotes">Notes (Optional)</label>
+          <textarea id="editNotes" name="notes" rows="4" placeholder="Any additional notes about this job..." style="width:100%;padding:1rem;border:2px solid #ddd;border-radius:8px;font-family:'Inter',sans-serif;font-size:1rem;box-sizing:border-box;resize:vertical"></textarea>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;gap:1rem;margin-top:1rem">
+          <button type="button" onclick="closeEditJobModal()" style="flex:1;padding:1rem;background:#666;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer">Cancel</button>
+          <button type="button" onclick="saveEditJob()" style="flex:1;padding:1rem;background:var(--green);color:white;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script src="api.js"></script>
+  <script src="js/admin-job-detail-calculations.js"></script>
+  <script>
+    // Hide the include div initially
+    document.addEventListener('DOMContentLoaded', function() {
+      const includeDiv = document.querySelector('[w3-include-html]');
+      if (includeDiv) {
+        includeDiv.style.display = 'none';
+      }
+      
+      w3.includeHTML(function() {
+        // Show the div after header loads
+        if (includeDiv) {
+          includeDiv.style.display = 'block';
+        }
+      });
+    });
+  </script>
+  <script>
+    let quill;
+    
+    // Initialize Quill editor after DOM is ready
+    function initQuillEditor() {
+      const editorEl = document.getElementById('recommendations-editor');
+      if (!editorEl) {
+        console.warn('recommendations-editor not found, retrying...');
+        setTimeout(initQuillEditor, 100);
+        return;
+      }
+      
+      // Check if Quill is loaded
+      if (typeof Quill === 'undefined') {
+        console.warn('Quill library not loaded, retrying...');
+        setTimeout(initQuillEditor, 100);
+        return;
+      }
+      
+      try {
+        quill = new Quill('#recommendations-editor', {
+          theme: 'snow',
+          modules: {
+            toolbar: [
+              [{ 'header': [1, 2, 3, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'color': [] }, { 'background': [] }],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              [{ 'align': [] }],
+              ['link'],
+              ['clean']
+            ]
+          },
+          placeholder: 'Enter recommendations and notes...'
+        });
+
+        // Update hidden textarea when Quill content changes
+        quill.on('text-change', function() {
+          const textarea = document.getElementById('recommendations');
+          if (textarea) {
+            textarea.value = quill.root.innerHTML;
+          }
+        });
+        
+        console.log('Quill editor initialized successfully');
+      } catch (error) {
+        console.error('Error initializing Quill editor:', error);
+        // Retry after a delay
+        setTimeout(initQuillEditor, 500);
+      }
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initQuillEditor);
+    } else {
+      // DOM already loaded
+      setTimeout(initQuillEditor, 100);
+    }
+
+    // Get job ID and report ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const jobId = urlParams.get('jobId');
+    const reportId = urlParams.get('reportId');
+    const isEdit = urlParams.get('edit') === 'true';
+    
+    console.log('URL Parameters:', { jobId, reportId, isEdit });
+
+    if (!jobId) {
+      alert('No job ID provided');
+      window.location.href = 'admin-dashboard.html';
+    }
+
+    // Edit Job Modal Functions - define BEFORE async function so they're available immediately
+    window.openEditJobModal = function openEditJobModal() {
+      console.log('=== OPENING EDIT MODAL ===');
+      console.log('Function called successfully!');
+      const modal = document.getElementById('editJobModal');
+      if (!modal) {
+        alert('Edit modal not found in DOM!');
+        console.error('Edit modal element not found');
+        return;
+      }
+      
+      const job = window.currentJob;
+      if (!job) {
+        alert('Job data not loaded yet. Please wait...');
+        console.error('window.currentJob is null/undefined');
+        return;
+      }
+
+      console.log('Opening edit modal for job:', job);
+      console.log('Job keys:', Object.keys(job));
+
+      // Parse client name into first and last
+      const nameParts = (job.name || job.client_name || '').split(' ');
+      const firstName = job.firstName || nameParts[0] || '';
+      const lastName = job.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
+
+      // Parse address - handle both formats
+      let streetAddress = '';
+      if (job.propertyAddress) {
+        const addressParts = job.propertyAddress.split(',');
+        streetAddress = addressParts[0] || job.propertyAddress;
+      } else if (job.address) {
+        const addressParts = job.address.split(',');
+        streetAddress = addressParts[0] || job.address;
+      }
+
+      // Populate form - ensure all fields are enabled and editable
+      const firstNameEl = document.getElementById('editFirstName');
+      const lastNameEl = document.getElementById('editLastName');
+      const emailEl = document.getElementById('editEmail');
+      const phoneEl = document.getElementById('editPhone');
+      const addressEl = document.getElementById('editPropertyAddress');
+      const cityEl = document.getElementById('editCity');
+      const stateEl = document.getElementById('editState');
+      const zipEl = document.getElementById('editZip');
+      const countyEl = document.getElementById('editCounty');
+      const roleEl = document.getElementById('editUserRole');
+      const wellPermitEl = document.getElementById('editWellPermitNumber');
+      const notesEl = document.getElementById('editNotes');
+      const scheduledDateEl = document.getElementById('editScheduledDate');
+
+      // Enable all fields explicitly - do this FIRST before populating
+      const allInputs = modal.querySelectorAll('input, select, textarea');
+      console.log('=== ENABLING FIELDS ===');
+      console.log('Found', allInputs.length, 'form fields in modal');
+      
+      allInputs.forEach((input, index) => {
+        const fieldId = input.id || input.name || `field-${index}`;
+        
+        // Remove all attributes that could disable the field
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+        input.removeAttribute('aria-disabled');
+        
+        // Force enable with inline styles (use !important via setProperty)
+        input.style.setProperty('pointer-events', 'auto', 'important');
+        input.style.setProperty('opacity', '1', 'important');
+        input.style.setProperty('cursor', input.type === 'radio' || input.type === 'checkbox' ? 'pointer' : 'text', 'important');
+        input.style.setProperty('background-color', 'white', 'important');
+        input.style.setProperty('color', '#000', 'important');
+        input.style.setProperty('user-select', 'text', 'important');
+        
+        // Remove any classes that might disable
+        input.classList.remove('disabled', 'readonly', 'form-control-disabled');
+        
+        // Explicitly set disabled property to false
+        input.disabled = false;
+        input.readOnly = false;
+        
+        console.log(`✓ Enabled field ${index} (${fieldId}):`, {
+          type: input.type,
+          disabled: input.disabled,
+          readOnly: input.readOnly,
+          pointerEvents: window.getComputedStyle(input).pointerEvents,
+          opacity: window.getComputedStyle(input).opacity
+        });
+      });
+      
+      console.log('=== FIELDS ENABLED ===');
+      
+      // Populate all fields
+      if (firstNameEl) {
+        firstNameEl.value = firstName;
+        console.log('Set firstName:', firstName);
+      } else {
+        console.error('firstNameEl not found!');
+      }
+      if (lastNameEl) {
+        lastNameEl.value = lastName;
+        console.log('Set lastName:', lastName);
+      } else {
+        console.error('lastNameEl not found!');
+      }
+      if (emailEl) {
+        emailEl.value = job.email || '';
+        console.log('Set email:', job.email);
+      } else {
+        console.error('emailEl not found!');
+      }
+      if (phoneEl) {
+        phoneEl.value = job.phone || '';
+        console.log('Set phone:', job.phone);
+      } else {
+        console.error('phoneEl not found!');
+      }
+      if (addressEl) {
+        addressEl.value = streetAddress;
+        console.log('Set address:', streetAddress);
+      } else {
+        console.error('addressEl not found!');
+      }
+      if (cityEl) {
+        cityEl.value = job.city || '';
+        console.log('Set city:', job.city);
+      } else {
+        console.error('cityEl not found!');
+      }
+      if (stateEl) {
+        stateEl.value = job.state || '';
+        console.log('Set state:', job.state);
+      } else {
+        console.error('stateEl not found!');
+      }
+      if (zipEl) {
+        zipEl.value = job.zip || '';
+        console.log('Set zip:', job.zip);
+      } else {
+        console.error('zipEl not found!');
+      }
+      if (countyEl) {
+        countyEl.value = job.county || '';
+        console.log('Set county:', job.county);
+      } else {
+        console.error('countyEl not found!');
+      }
+      if (roleEl) {
+        roleEl.value = job.userRole || job.role || '';
+        console.log('Set role:', job.userRole || job.role);
+      } else {
+        console.error('roleEl not found!');
+      }
+      if (wellPermitEl) {
+        wellPermitEl.value = job.wellPermitNumber || '';
+        console.log('Set wellPermitNumber:', job.wellPermitNumber);
+      } else {
+        console.error('wellPermitEl not found!');
+      }
+      if (notesEl) {
+        notesEl.value = job.notes || '';
+        console.log('Set notes:', job.notes);
+      } else {
+        console.error('notesEl not found!');
+      }
+      
+      // Handle radio buttons
+      const cisternYes = document.getElementById('editCisternYes');
+      const cisternNo = document.getElementById('editCisternNo');
+      if (job.hasCistern) {
+        if (job.hasCistern === 'yes' && cisternYes) cisternYes.checked = true;
+        if (job.hasCistern === 'no' && cisternNo) cisternNo.checked = true;
+      }
+      if (cisternYes) {
+        cisternYes.removeAttribute('disabled');
+        cisternYes.removeAttribute('readonly');
+      }
+      if (cisternNo) {
+        cisternNo.removeAttribute('disabled');
+        cisternNo.removeAttribute('readonly');
+      }
+      
+      const willBePresentYes = document.getElementById('editWillBePresentYes');
+      const willBePresentNo = document.getElementById('editWillBePresentNo');
+      if (job.willBePresent) {
+        if (job.willBePresent === 'yes' && willBePresentYes) willBePresentYes.checked = true;
+        if (job.willBePresent === 'no' && willBePresentNo) willBePresentNo.checked = true;
+        window.handleEditAccessSelection(job.willBePresent);
+      }
+      if (willBePresentYes) {
+        willBePresentYes.removeAttribute('disabled');
+        willBePresentYes.removeAttribute('readonly');
+      }
+      if (willBePresentNo) {
+        willBePresentNo.removeAttribute('disabled');
+        willBePresentNo.removeAttribute('readonly');
+      }
+      
+      const accessInstructionsEl = document.getElementById('editAccessInstructions');
+      if (accessInstructionsEl) {
+        accessInstructionsEl.value = job.accessInstructions || '';
+        console.log('Set accessInstructions:', job.accessInstructions);
+      } else {
+        console.error('accessInstructionsEl not found!');
+      }
+      
+      if (scheduledDateEl) {
+        if (job.scheduledDate) {
+          try {
+            // Convert ISO date to datetime-local format
+            const date = new Date(job.scheduledDate);
+            if (!isNaN(date.getTime())) {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const hours = String(date.getHours()).padStart(2, '0');
+              const minutes = String(date.getMinutes()).padStart(2, '0');
+              scheduledDateEl.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+              console.log('Set scheduledDate:', scheduledDateEl.value);
+            }
+          } catch (e) {
+            console.error('Error parsing scheduled date:', e);
+          }
+        } else {
+          scheduledDateEl.value = '';
+        }
+      } else {
+        console.error('scheduledDateEl not found!');
+      }
+      
+      console.log('=== FIELD POPULATION COMPLETE ===');
+
+      window.toggleEditOtherRoleInput();
+      
+      // Final check - ensure all fields are enabled (run multiple times to catch any late-disabling)
+      const enableFields = () => {
+        const checkInputs = modal.querySelectorAll('input, select, textarea');
+        let disabledCount = 0;
+        checkInputs.forEach(input => {
+          const isDisabled = input.hasAttribute('disabled') || input.hasAttribute('readonly') || input.disabled || input.readOnly;
+          if (isDisabled) {
+            disabledCount++;
+            input.removeAttribute('disabled');
+            input.removeAttribute('readonly');
+            input.disabled = false;
+            input.readOnly = false;
+            input.style.setProperty('pointer-events', 'auto', 'important');
+            input.style.setProperty('opacity', '1', 'important');
+            input.style.setProperty('background-color', 'white', 'important');
+          }
+        });
+        if (disabledCount > 0) {
+          console.log(`Fixed ${disabledCount} disabled fields`);
+        }
+      };
+      
+      // Run immediately and again after a delay
+      enableFields();
+      setTimeout(enableFields, 50);
+      setTimeout(enableFields, 100);
+      setTimeout(enableFields, 200);
+      
+      modal.style.display = 'flex';
+      console.log('=== MODAL DISPLAYED - ALL FIELDS SHOULD BE EDITABLE ===');
+      
+      // Add click handlers to test if fields are interactive
+      const testFields = ['editFirstName', 'editLastName', 'editEmail', 'editPhone', 'editCounty', 'editUserRole'];
+      testFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.addEventListener('click', () => {
+            console.log(`✓ Field ${fieldId} is clickable!`);
+          });
+          field.addEventListener('focus', () => {
+            console.log(`✓ Field ${fieldId} received focus!`);
+          });
+        }
+      });
+      
+      // Test: Try to focus the first name field
+      setTimeout(() => {
+        const testField = document.getElementById('editFirstName');
+        if (testField) {
+          console.log('Test field state:', {
+            disabled: testField.disabled,
+            readOnly: testField.readOnly,
+            pointerEvents: window.getComputedStyle(testField).pointerEvents,
+            opacity: window.getComputedStyle(testField).opacity
+          });
+          testField.focus();
+          console.log('✓ Test: Focused firstName field. Try typing now!');
+        } else {
+          console.error('Test field not found!');
+        }
+      }, 300);
+    };
+
+    window.closeEditJobModal = function closeEditJobModal() {
+      document.getElementById('editJobModal').style.display = 'none';
+    };
+
+    window.toggleEditOtherRoleInput = function toggleEditOtherRoleInput() {
+      const userRole = document.getElementById('editUserRole').value;
+      const otherInput = document.getElementById('editOtherRoleInput');
+      if (userRole === 'other') {
+        otherInput.style.display = 'block';
+        document.getElementById('editOtherRoleText').required = true;
+      } else {
+        otherInput.style.display = 'none';
+        document.getElementById('editOtherRoleText').required = false;
+        document.getElementById('editOtherRoleText').value = '';
+      }
+    };
+
+    window.handleEditAccessSelection = function handleEditAccessSelection(value) {
+      const accessGroup = document.getElementById('editAccessInstructionsGroup');
+      if (value === 'no') {
+        accessGroup.style.display = 'block';
+        document.getElementById('editAccessInstructions').required = true;
+      } else {
+        accessGroup.style.display = 'none';
+        document.getElementById('editAccessInstructions').required = false;
+        document.getElementById('editAccessInstructions').value = '';
+      }
+    };
+
+    window.saveEditJob = async function saveEditJob() {
+      const job = window.currentJob;
+      if (!job || !jobId) {
+        alert('Job data not available');
+        return;
+      }
+
+      const form = document.getElementById('editJobForm');
+      
+      // Gather and validate form data
+      const firstName = document.getElementById('editFirstName').value.trim();
+      const lastName = document.getElementById('editLastName').value.trim();
+      const propertyAddress = document.getElementById('editPropertyAddress').value.trim();
+      const county = document.getElementById('editCounty').value;
+      const userRole = document.getElementById('editUserRole').value;
+      const willBePresent = document.querySelector('input[name="editWillBePresent"]:checked')?.value;
+      
+      if (!firstName) {
+        alert('Please enter client first name');
+        document.getElementById('editFirstName').focus();
+        return;
+      }
+      if (!lastName) {
+        alert('Please enter client last name');
+        document.getElementById('editLastName').focus();
+        return;
+      }
+      if (!propertyAddress) {
+        alert('Please enter property address');
+        document.getElementById('editPropertyAddress').focus();
+        return;
+      }
+      if (!county) {
+        alert('Please select a county');
+        document.getElementById('editCounty').focus();
+        return;
+      }
+      if (!userRole) {
+        alert('Please select a client role');
+        document.getElementById('editUserRole').focus();
+        return;
+      }
+      if (userRole === 'other') {
+        const otherRoleText = document.getElementById('editOtherRoleText').value.trim();
+        if (!otherRoleText) {
+          alert('Please specify the role');
+          document.getElementById('editOtherRoleText').focus();
+          return;
+        }
+      }
+      if (!willBePresent) {
+        alert('Please indicate if someone will be present');
+        return;
+      }
+      if (willBePresent === 'no') {
+        const accessInstructions = document.getElementById('editAccessInstructions').value.trim();
+        if (!accessInstructions) {
+          alert('Please provide access instructions');
+          document.getElementById('editAccessInstructions').focus();
+          return;
+        }
+      }
+
+      // Gather remaining form data (firstName, lastName, propertyAddress, county, userRole, willBePresent already declared above)
+      const clientName = `${firstName} ${lastName}`.trim();
+      const otherRoleText = document.getElementById('editOtherRoleText').value;
+      const hasCistern = document.querySelector('input[name="editHasCistern"]:checked')?.value || null;
+      const scheduledDate = document.getElementById('editScheduledDate').value;
+
+      const jobData = {
+        propertyAddress: document.getElementById('editPropertyAddress').value.trim(),
+        city: document.getElementById('editCity').value.trim() || null,
+        zip: document.getElementById('editZip').value.trim() || null,
+        county: document.getElementById('editCounty').value,
+        name: clientName,
+        firstName: firstName,
+        lastName: lastName,
+        email: document.getElementById('editEmail').value.trim() || null,
+        phone: document.getElementById('editPhone').value.trim() || null,
+        state: document.getElementById('editState').value.trim() || null,
+        userRole: userRole === 'other' ? otherRoleText.trim() : userRole,
+        hasCistern: hasCistern,
+        wellPermitNumber: document.getElementById('editWellPermitNumber').value.trim() || null,
+        willBePresent: willBePresent,
+        accessInstructions: willBePresent === 'no' ? (document.getElementById('editAccessInstructions').value.trim() || null) : null,
+        scheduledDate: scheduledDate ? (scheduledDate.includes('T') ? `${scheduledDate}:00` : `${scheduledDate}T00:00:00`) : null,
+        notes: document.getElementById('editNotes').value.trim() || null,
+      };
+
+      try {
+        console.log('Saving job data:', jobData);
+        console.log('Job data keys:', Object.keys(jobData));
+        console.log('Job data values:', Object.values(jobData));
+        
+        // Update job via API
+        const updatedJob = await window.jobsAPI.update(jobId, jobData);
+        console.log('Job updated successfully:', updatedJob);
+        console.log('Updated job keys:', Object.keys(updatedJob || {}));
+        
+        // Reload job data to get latest from server
+        const refreshedJob = await window.jobsAPI.getById(jobId);
+        window.currentJob = refreshedJob;
+
+        // Update display
+        document.getElementById('jobAddress').textContent = jobData.propertyAddress || refreshedJob.propertyAddress || 'No address';
+        const clientNameEl = document.getElementById('clientName');
+        clientNameEl.innerHTML = `Client: ${clientName}`;
+        
+        // Show success message
+        const toast = document.getElementById('toast');
+        toast.textContent = 'Job updated successfully!';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+
+        // Close modal
+        window.closeEditJobModal();
+      } catch (error) {
+        console.error('Error updating job:', error);
+        console.error('Job data that failed:', jobData);
+        alert('Failed to update job: ' + (error.message || 'Unknown error') + '\n\nCheck console for details.');
+      }
+    };
+    
+    console.log('✅ Edit modal functions defined and ready!');
+    console.log('Functions available:', {
+      openEditJobModal: typeof window.openEditJobModal,
+      closeEditJobModal: typeof window.closeEditJobModal,
+      saveEditJob: typeof window.saveEditJob
+    });
+
+    // Load job data and initialize page
+    let job;
+    (async function() {
+      try {
+        job = await window.jobsAPI.getById(jobId);
+        
+        // Store job globally for edit modal
+        window.currentJob = job;
+        
+        // Display job info
+        document.getElementById('jobAddress').textContent = job.propertyAddress || 'No address';
+        const clientNameEl = document.getElementById('clientName');
+        clientNameEl.innerHTML = `Client: ${job.name || 'N/A'}`;
+        document.getElementById('jobIdDisplay').textContent = `Job ID: ${jobId}`;
+
+        // Update button text if editing
+        if (isEdit && reportId) {
+          const submitBtn = document.querySelector('.generate-btn');
+          if (submitBtn) {
+            submitBtn.textContent = 'Update & Preview Report';
+          }
+        }
+
+        // Pre-fill well permit if available - wait for DOM to be ready
+        function setWellPermit() {
+          const wellPermitInput = document.getElementById('wellPermit');
+          console.log('Setting well permit:', job.wellPermitNumber, 'Element found:', !!wellPermitInput);
+          if (wellPermitInput && job.wellPermitNumber) {
+            wellPermitInput.value = job.wellPermitNumber;
+            console.log('Well permit set successfully');
+          } else if (job.wellPermitNumber) {
+            // Retry if element not found yet (max 10 retries = 1 second)
+            const retries = setWellPermit.retries || 0;
+            if (retries < 10) {
+              setWellPermit.retries = retries + 1;
+              setTimeout(setWellPermit, 100);
+            } else {
+              console.warn('Well permit input not found after 10 retries');
+            }
+          }
+        }
+        // Try immediately, then retry if needed
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setWellPermit);
+        } else {
+          // DOM already loaded, try immediately and retry if needed
+          setWellPermit();
+        }
+
+        // Function to parse coordinates and auto-fill GPS fields
+        function parseCoordinates() {
+          const coordinatesInput = document.getElementById('coordinates');
+          const gpsLatInput = document.getElementById('gpsLat');
+          const gpsLongInput = document.getElementById('gpsLong');
+          
+          if (!coordinatesInput || !gpsLatInput || !gpsLongInput) return;
+          
+          const coordinates = coordinatesInput.value.trim();
+          if (!coordinates) return;
+          
+          // Try to parse coordinates (accepts: "lat, long", "lat long", "lat,long", etc.)
+          const parts = coordinates.split(/[,\s]+/).filter(p => p.trim());
+          if (parts.length >= 2) {
+            const lat = parseFloat(parts[0]);
+            const long = parseFloat(parts[1]);
+            
+            if (!isNaN(lat) && !isNaN(long)) {
+              gpsLatInput.value = lat;
+              gpsLongInput.value = long;
+            }
+          }
+        }
+        
+        // Make parseCoordinates globally accessible
+        window.parseCoordinates = parseCoordinates;
+      } catch (error) {
+        console.error('Error loading job:', error);
+        alert('Failed to load job data. Please refresh the page.');
+      }
+    })();
+    
+    // Edit Job Modal - openEditJobModal function (separate from async function above)
+    window.openEditJobModal = function openEditJobModal() {
+      console.log('=== OPENING EDIT MODAL ===');
+      const modal = document.getElementById('editJobModal');
+      if (!modal) {
+        alert('Edit modal not found in DOM!');
+        console.error('Edit modal element not found');
+        return;
+      }
+      
+      const job = window.currentJob;
+      if (!job) {
+        alert('Job data not loaded yet. Please wait...');
+        console.error('window.currentJob is null/undefined');
+        return;
+      }
+
+      console.log('Opening edit modal for job:', job);
+      console.log('Job keys:', Object.keys(job));
+
+      // Parse client name into first and last
+      const nameParts = (job.name || job.client_name || '').split(' ');
+      const firstName = job.firstName || nameParts[0] || '';
+      const lastName = job.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
+
+      // Parse address - handle both formats
+      let streetAddress = '';
+      if (job.propertyAddress) {
+        const addressParts = job.propertyAddress.split(',');
+        streetAddress = addressParts[0] || job.propertyAddress;
+      } else if (job.address) {
+        const addressParts = job.address.split(',');
+        streetAddress = addressParts[0] || job.address;
+      }
+
+      // Populate form - ensure all fields are enabled and editable
+      const firstNameEl = document.getElementById('editFirstName');
+      const lastNameEl = document.getElementById('editLastName');
+      const emailEl = document.getElementById('editEmail');
+      const phoneEl = document.getElementById('editPhone');
+      const addressEl = document.getElementById('editPropertyAddress');
+      const cityEl = document.getElementById('editCity');
+      const stateEl = document.getElementById('editState');
+      const zipEl = document.getElementById('editZip');
+      const countyEl = document.getElementById('editCounty');
+      const roleEl = document.getElementById('editUserRole');
+      const wellPermitEl = document.getElementById('editWellPermitNumber');
+      const notesEl = document.getElementById('editNotes');
+      const scheduledDateEl = document.getElementById('editScheduledDate');
+
+      // Enable all fields explicitly - do this FIRST before populating
+      const allInputs = modal.querySelectorAll('input, select, textarea');
+      console.log('=== ENABLING FIELDS ===');
+      console.log('Found', allInputs.length, 'form fields in modal');
+      
+      allInputs.forEach((input, index) => {
+        const fieldId = input.id || input.name || `field-${index}`;
+        
+        // Remove all attributes that could disable the field
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+        input.removeAttribute('aria-disabled');
+        
+        // Force enable with inline styles (use !important via setProperty)
+        input.style.setProperty('pointer-events', 'auto', 'important');
+        input.style.setProperty('opacity', '1', 'important');
+        input.style.setProperty('cursor', input.type === 'radio' || input.type === 'checkbox' ? 'pointer' : 'text', 'important');
+        input.style.setProperty('background-color', 'white', 'important');
+        input.style.setProperty('color', '#000', 'important');
+        input.style.setProperty('user-select', 'text', 'important');
+        
+        // Remove any classes that might disable
+        input.classList.remove('disabled', 'readonly', 'form-control-disabled');
+        
+        // Explicitly set disabled property to false
+        input.disabled = false;
+        input.readOnly = false;
+        
+        console.log(`✓ Enabled field ${index} (${fieldId}):`, {
+          type: input.type,
+          disabled: input.disabled,
+          readOnly: input.readOnly,
+          pointerEvents: window.getComputedStyle(input).pointerEvents,
+          opacity: window.getComputedStyle(input).opacity
+        });
+      });
+      
+      console.log('=== FIELDS ENABLED ===');
+      
+      // Populate all fields
+      if (firstNameEl) {
+        firstNameEl.value = firstName;
+        console.log('Set firstName:', firstName);
+      } else {
+        console.error('firstNameEl not found!');
+      }
+      if (lastNameEl) {
+        lastNameEl.value = lastName;
+        console.log('Set lastName:', lastName);
+      } else {
+        console.error('lastNameEl not found!');
+      }
+      if (emailEl) {
+        emailEl.value = job.email || '';
+        console.log('Set email:', job.email);
+      } else {
+        console.error('emailEl not found!');
+      }
+      if (phoneEl) {
+        phoneEl.value = job.phone || '';
+        console.log('Set phone:', job.phone);
+      } else {
+        console.error('phoneEl not found!');
+      }
+      if (addressEl) {
+        addressEl.value = streetAddress;
+        console.log('Set address:', streetAddress);
+      } else {
+        console.error('addressEl not found!');
+      }
+      if (cityEl) {
+        cityEl.value = job.city || '';
+        console.log('Set city:', job.city);
+      } else {
+        console.error('cityEl not found!');
+      }
+      if (stateEl) {
+        stateEl.value = job.state || '';
+        console.log('Set state:', job.state);
+      } else {
+        console.error('stateEl not found!');
+      }
+      if (zipEl) {
+        zipEl.value = job.zip || '';
+        console.log('Set zip:', job.zip);
+      } else {
+        console.error('zipEl not found!');
+      }
+      if (countyEl) {
+        countyEl.value = job.county || '';
+        console.log('Set county:', job.county);
+      } else {
+        console.error('countyEl not found!');
+      }
+      if (roleEl) {
+        roleEl.value = job.userRole || job.role || '';
+        console.log('Set role:', job.userRole || job.role);
+      } else {
+        console.error('roleEl not found!');
+      }
+      if (wellPermitEl) {
+        wellPermitEl.value = job.wellPermitNumber || '';
+        console.log('Set wellPermitNumber:', job.wellPermitNumber);
+      } else {
+        console.error('wellPermitEl not found!');
+      }
+      if (notesEl) {
+        notesEl.value = job.notes || '';
+        console.log('Set notes:', job.notes);
+      } else {
+        console.error('notesEl not found!');
+      }
+      
+      // Handle radio buttons
+      const cisternYes = document.getElementById('editCisternYes');
+      const cisternNo = document.getElementById('editCisternNo');
+      if (job.hasCistern) {
+        if (job.hasCistern === 'yes' && cisternYes) cisternYes.checked = true;
+        if (job.hasCistern === 'no' && cisternNo) cisternNo.checked = true;
+      }
+      if (cisternYes) {
+        cisternYes.removeAttribute('disabled');
+        cisternYes.removeAttribute('readonly');
+      }
+      if (cisternNo) {
+        cisternNo.removeAttribute('disabled');
+        cisternNo.removeAttribute('readonly');
+      }
+      
+      const willBePresentYes = document.getElementById('editWillBePresentYes');
+      const willBePresentNo = document.getElementById('editWillBePresentNo');
+      if (job.willBePresent) {
+        if (job.willBePresent === 'yes' && willBePresentYes) willBePresentYes.checked = true;
+        if (job.willBePresent === 'no' && willBePresentNo) willBePresentNo.checked = true;
+        handleEditAccessSelection(job.willBePresent);
+      }
+      if (willBePresentYes) {
+        willBePresentYes.removeAttribute('disabled');
+        willBePresentYes.removeAttribute('readonly');
+      }
+      if (willBePresentNo) {
+        willBePresentNo.removeAttribute('disabled');
+        willBePresentNo.removeAttribute('readonly');
+      }
+      
+      const accessInstructionsEl = document.getElementById('editAccessInstructions');
+      if (accessInstructionsEl) {
+        accessInstructionsEl.value = job.accessInstructions || '';
+        console.log('Set accessInstructions:', job.accessInstructions);
+      } else {
+        console.error('accessInstructionsEl not found!');
+      }
+      
+      if (scheduledDateEl) {
+        if (job.scheduledDate) {
+          try {
+            // Convert ISO date to datetime-local format
+            const date = new Date(job.scheduledDate);
+            if (!isNaN(date.getTime())) {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const hours = String(date.getHours()).padStart(2, '0');
+              const minutes = String(date.getMinutes()).padStart(2, '0');
+              scheduledDateEl.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+              console.log('Set scheduledDate:', scheduledDateEl.value);
+            }
+          } catch (e) {
+            console.error('Error parsing scheduled date:', e);
+          }
+        } else {
+          scheduledDateEl.value = '';
+        }
+      } else {
+        console.error('scheduledDateEl not found!');
+      }
+      
+      console.log('=== FIELD POPULATION COMPLETE ===');
+
+      toggleEditOtherRoleInput();
+      
+      // Final check - ensure all fields are enabled (run multiple times to catch any late-disabling)
+      const enableFields = () => {
+        const checkInputs = modal.querySelectorAll('input, select, textarea');
+        let disabledCount = 0;
+        checkInputs.forEach(input => {
+          const isDisabled = input.hasAttribute('disabled') || input.hasAttribute('readonly') || input.disabled || input.readOnly;
+          if (isDisabled) {
+            disabledCount++;
+            input.removeAttribute('disabled');
+            input.removeAttribute('readonly');
+            input.disabled = false;
+            input.readOnly = false;
+            input.style.setProperty('pointer-events', 'auto', 'important');
+            input.style.setProperty('opacity', '1', 'important');
+            input.style.setProperty('background-color', 'white', 'important');
+          }
+        });
+        if (disabledCount > 0) {
+          console.log(`Fixed ${disabledCount} disabled fields`);
+        }
+      };
+      
+      // Run immediately and again after a delay
+      enableFields();
+      setTimeout(enableFields, 50);
+      setTimeout(enableFields, 100);
+      setTimeout(enableFields, 200);
+      
+      modal.style.display = 'flex';
+      console.log('=== MODAL DISPLAYED - ALL FIELDS SHOULD BE EDITABLE ===');
+      
+      // Add click handlers to test if fields are interactive
+      const testFields = ['editFirstName', 'editLastName', 'editEmail', 'editPhone', 'editCounty', 'editUserRole'];
+      testFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.addEventListener('click', () => {
+            console.log(`✓ Field ${fieldId} is clickable!`);
+          });
+          field.addEventListener('focus', () => {
+            console.log(`✓ Field ${fieldId} received focus!`);
+          });
+        }
+      });
+      
+      // Test: Try to focus the first name field
+      setTimeout(() => {
+        const testField = document.getElementById('editFirstName');
+        if (testField) {
+          console.log('Test field state:', {
+            disabled: testField.disabled,
+            readOnly: testField.readOnly,
+            pointerEvents: window.getComputedStyle(testField).pointerEvents,
+            opacity: window.getComputedStyle(testField).opacity
+          });
+          testField.focus();
+          console.log('✓ Test: Focused firstName field. Try typing now!');
+        } else {
+          console.error('Test field not found!');
+        }
+      }, 300);
+    }
+
+    // Photo upload slots with suggested captions
+    const photoCaptions = [
+      'Well head with orange/green whip marker',
+      'Well head close-up (cap off if possible)',
+      'Well permit scan',
+      'Pressure tank + gauge',
+      'Pump controller / wire splice box',
+      'Flow test - hose running (angle 1)',
+      'Flow test - hose running (angle 2)',
+      'Flow test - hose running (angle 3)',
+      'Flow test - hose running (angle 4)',
+      'Flow test - hose running (angle 5)',
+      'Water sample collection',
+      'Extra photo / treatment equipment',
+      'Extra photo / treatment equipment',
+      'Extra photo / treatment equipment',
+      'Extra photo / treatment equipment'
+    ];
+
+    let photoGrid;
+    const photos = [];
+
+    // Initialize photo grid when DOM is ready
+    function initPhotoGrid() {
+      try {
+        photoGrid = document.getElementById('photoGrid');
+        if (!photoGrid) {
+          console.warn('photoGrid not found, retrying...');
+          setTimeout(initPhotoGrid, 100);
+          return;
+        }
+        
+        // Clear any existing content
+        photoGrid.innerHTML = '';
+        photos.length = 0;
+        
+        // Create photo slots
+        photoCaptions.forEach((caption, index) => {
+          const slot = document.createElement('div');
+          slot.className = 'photo-slot';
+          slot.innerHTML = `
+            <input type="file" accept="image/*" id="photo${index}" onchange="handlePhotoUpload(${index}, this)">
+            <label for="photo${index}" class="upload-label">Upload Photo</label>
+            <input type="text" class="photo-caption-input" id="caption${index}" value="${caption}" placeholder="Photo caption" onchange="updatePhotoCaption(${index})" onblur="updatePhotoCaption(${index})">
+            <button type="button" class="delete-btn" onclick="deletePhoto(${index})">×</button>
+          `;
+          photoGrid.appendChild(slot);
+          photos.push({ url: null, caption, order: index });
+        });
+        console.log('✅ Photo grid initialized with', photos.length, 'slots');
+      } catch (error) {
+        console.error('Error initializing photo grid:', error);
+        setTimeout(initPhotoGrid, 200);
+      }
+    }
+    
+    // Make initPhotoGrid globally accessible
+    window.initPhotoGrid = initPhotoGrid;
+
+    function updatePhotoCaption(index) {
+      const captionInput = document.getElementById(`caption${index}`);
+      if (captionInput && photos[index]) {
+        photos[index].caption = captionInput.value || photoCaptions[index];
+      }
+    }
+
+    function handlePhotoUpload(index, input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photos[index].url = e.target.result;
+        const currentCaption = photos[index].caption || photoCaptions[index];
+        const slot = photoGrid.children[index];
+        slot.classList.add('has-photo');
+        slot.innerHTML = `
+          <img src="${e.target.result}" alt="Photo ${index + 1}">
+          <input type="text" class="photo-caption-input" id="caption${index}" value="${currentCaption}" placeholder="Photo caption" onchange="updatePhotoCaption(${index})" onblur="updatePhotoCaption(${index})">
+          <button type="button" class="delete-btn" onclick="deletePhoto(${index})">×</button>
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function deletePhoto(index) {
+      photos[index].url = null;
+      const currentCaption = photos[index].caption || photoCaptions[index];
+      const slot = photoGrid.children[index];
+      slot.classList.remove('has-photo');
+      slot.innerHTML = `
+        <input type="file" accept="image/*" id="photo${index}" onchange="handlePhotoUpload(${index}, this)">
+        <label for="photo${index}" class="upload-label">Upload Photo</label>
+        <input type="text" class="photo-caption-input" id="caption${index}" value="${currentCaption}" placeholder="Photo caption" onchange="updatePhotoCaption(${index})" onblur="updatePhotoCaption(${index})">
+        <button type="button" class="delete-btn" onclick="deletePhoto(${index})" style="display:none">×</button>
+      `;
+    }
+
+    // Generate flow test table - make variables globally accessible
+    window.window.flowTableBody = null;
+    let flowRowCounter = 0;
+    const flowReadings = [];
+
+    // Initialize flow table body when DOM is ready
+    function initFlowTable() {
+      try {
+        window.window.flowTableBody = document.getElementById('window.flowTableBody');
+        if (!window.window.flowTableBody) {
+          console.warn('window.flowTableBody not found, retrying...');
+          setTimeout(initFlowTable, 100);
+          return;
+        }
+        console.log('✅ Flow table initialized');
+      } catch (error) {
+        console.error('Error initializing flow table:', error);
+        setTimeout(initFlowTable, 200);
+      }
+    }
+    
+    // Make initFlowTable globally accessible
+    window.initFlowTable = initFlowTable;
+
+    // Make addFlowRow globally accessible
+    window.addFlowRow = function(time = null, gpm = null) {
+      console.log('addFlowRow called with time:', time, 'gpm:', gpm);
+      // Always try to get window.flowTableBody if not set
+      if (!window.window.flowTableBody) {
+        window.window.flowTableBody = document.getElementById('window.flowTableBody');
+        console.log('window.flowTableBody retrieved:', !!window.window.flowTableBody);
+      }
+      if (!window.window.flowTableBody) {
+        console.error('Flow table body not found');
+        alert('Flow table not ready. Please wait a moment and try again.');
+        return;
+      }
+      const rowId = `flow_row_${flowRowCounter++}`;
+      const row = document.createElement('tr');
+      row.id = rowId;
+      const timeValue = time !== null ? time : '';
+      const gpmValue = gpm !== null ? gpm : '';
+      row.innerHTML = `
+        <td><input type="number" class="flow-time" step="0.01" value="${timeValue}" placeholder="0.00" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px"></td>
+        <td><input type="number" class="flow-gpm" name="gpm_${rowId}" step="0.01" value="${gpmValue}" placeholder="0.00" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px" onchange="calculateFlowResults()" oninput="calculateFlowResults()"></td>
+        <td class="flow-percent-change" style="padding:0.5rem;text-align:center;font-weight:600">--</td>
+        <td><button type="button" onclick="removeFlowRow('${rowId}')" style="background:#d32f2f;color:white;border:none;border-radius:4px;padding:0.4rem 0.8rem;cursor:pointer;font-size:0.9rem">Remove</button></td>
+      `;
+      window.window.flowTableBody.appendChild(row);
+      flowReadings.push({ rowId, time: timeValue, gpm: gpmValue });
+      console.log('Row added successfully, total rows:', flowReadings.length);
+      if (typeof calculateFlowResults === 'function') {
+        calculateFlowResults();
+      }
+    }
+    
+    // Ensure addFlowRow is available immediately
+    console.log('addFlowRow function defined:', typeof window.addFlowRow);
+
+    // Make removeFlowRow globally accessible
+    window.removeFlowRow = function(rowId) {
+      const row = document.getElementById(rowId);
+      if (row) {
+        row.remove();
+        const index = flowReadings.findIndex(r => r.rowId === rowId);
+        if (index !== -1) {
+          flowReadings.splice(index, 1);
+        }
+        calculateFlowResults();
+      }
+    }
+
+    // Load existing report data if editing - wait for DOM to be ready
+    async function loadExistingReport() {
+      console.log('loadExistingReport called - isEdit:', isEdit, 'reportId:', reportId, 'jobId:', jobId);
+      
+      // Try to load report by jobId if no reportId is provided
+      if (!reportId && jobId) {
+        try {
+          console.log('Fetching report by jobId:', jobId);
+          const reports = await window.reportsAPI.getByJobId(jobId);
+          console.log('Reports fetched by jobId:', reports);
+          
+          if (reports && reports.length > 0) {
+            const existingReport = reports[0]; // Use first report if multiple exist
+            console.log('Found existing report:', existingReport);
+            
+            // Load the report data (same logic as below)
+            if (existingReport) {
+              const reportData = existingReport.data || existingReport;
+              const wellBasics = reportData.wellBasics || existingReport.well_basics || {};
+              const systemEquipment = reportData.systemEquipment || existingReport.system_equipment || {};
+              console.log('Loading report data from jobId:', reportData);
+              console.log('Well Basics:', wellBasics);
+              console.log('System Equipment:', systemEquipment);
+              
+              // Load Well Basics fields
+              const wellPermitEl = document.getElementById('wellPermit');
+              if (wellPermitEl) wellPermitEl.value = wellBasics.wellPermit || reportData.wellPermit || '';
+              
+              const totalDepthEl = document.getElementById('totalDepth');
+              if (totalDepthEl) totalDepthEl.value = wellBasics.totalDepth || reportData.totalDepth || '';
+              
+              const casingDepthEl = document.getElementById('casingDepth');
+              if (casingDepthEl) casingDepthEl.value = wellBasics.casingDepth || reportData.casingDepth || '';
+              
+              const staticWaterLevelEl = document.getElementById('staticWaterLevel');
+              if (staticWaterLevelEl) staticWaterLevelEl.value = wellBasics.staticWaterLevel || reportData.staticWaterLevel || '';
+              
+              const gpsLatEl = document.getElementById('gpsLat');
+              if (gpsLatEl) gpsLatEl.value = wellBasics.gpsLat || reportData.gpsLat || '';
+              
+              const gpsLongEl = document.getElementById('gpsLong');
+              if (gpsLongEl) gpsLongEl.value = wellBasics.gpsLong || reportData.gpsLong || '';
+              
+              const wellHeadLocationEl = document.getElementById('wellHeadLocation');
+              if (wellHeadLocationEl) wellHeadLocationEl.value = wellBasics.wellHeadLocation || reportData.wellHeadLocation || '';
+              
+              const coordinatesEl = document.getElementById('coordinates');
+              if (coordinatesEl) coordinatesEl.value = wellBasics.coordinates || reportData.coordinates || '';
+              
+              // Load System Equipment fields
+              const pressureTankSizeEl = document.getElementById('pressureTankSize');
+              if (pressureTankSizeEl) pressureTankSizeEl.value = systemEquipment.pressureTankSize || reportData.pressureTankSize || '';
+              
+              const prechargePSIEl = document.getElementById('prechargePSI');
+              if (prechargePSIEl) prechargePSIEl.value = systemEquipment.prechargePSI || reportData.prechargePSI || '';
+              
+              const storageTanksEl = document.getElementById('storageTanks');
+              if (storageTanksEl) storageTanksEl.value = systemEquipment.storageTanks || reportData.storageTanks || '';
+              
+              const pumpMakeModelEl = document.getElementById('pumpMakeModel');
+              if (pumpMakeModelEl) pumpMakeModelEl.value = systemEquipment.pumpMakeModel || reportData.pumpMakeModel || '';
+              
+              const pumpConditionEl = document.getElementById('pumpCondition');
+              if (pumpConditionEl) pumpConditionEl.value = systemEquipment.pumpCondition || reportData.pumpCondition || '';
+              
+              const pressureTankConditionEl = document.getElementById('pressureTankCondition');
+              if (pressureTankConditionEl) pressureTankConditionEl.value = systemEquipment.pressureTankCondition || reportData.pressureTankCondition || '';
+              
+              const wiringConditionEl = document.getElementById('wiringCondition');
+              if (wiringConditionEl) wiringConditionEl.value = systemEquipment.wiringCondition || reportData.wiringCondition || '';
+              
+              const wellCapConditionEl = document.getElementById('wellCapCondition');
+              if (wellCapConditionEl) wellCapConditionEl.value = systemEquipment.wellCapCondition || reportData.wellCapCondition || '';
+              
+              const wellPumpLocationEl = document.getElementById('wellPumpLocation');
+              if (wellPumpLocationEl) wellPumpLocationEl.value = systemEquipment.wellPumpLocation || reportData.wellPumpLocation || '';
+              
+              const waterTreatmentEl = document.getElementById('waterTreatment');
+              if (waterTreatmentEl) {
+                const treatmentValue = systemEquipment.waterTreatment || reportData.waterTreatment;
+                const treatments = Array.isArray(treatmentValue) 
+                  ? treatmentValue 
+                  : (typeof treatmentValue === 'string' && treatmentValue 
+                      ? treatmentValue.split(',').map(t => t.trim()).filter(t => t)
+                      : []);
+                Array.from(waterTreatmentEl.options).forEach(option => {
+                  option.selected = treatments.includes(option.value);
+                });
+              }
+              
+              const waterTreatmentOtherEl = document.getElementById('waterTreatmentOther');
+              if (waterTreatmentOtherEl) waterTreatmentOtherEl.value = systemEquipment.waterTreatmentOther || reportData.waterTreatmentOther || '';
+              
+              const dischargeLocationEl = document.getElementById('dischargeLocation');
+              if (dischargeLocationEl) dischargeLocationEl.value = systemEquipment.dischargeLocation || reportData.dischargeLocation || '';
+              
+              const sourceOfOutputEl = document.getElementById('sourceOfOutput');
+              if (sourceOfOutputEl) sourceOfOutputEl.value = systemEquipment.sourceOfOutput || reportData.sourceOfOutput || '';
+              
+              const pumpedDownToEl = document.getElementById('pumpedDownTo');
+              if (pumpedDownToEl) pumpedDownToEl.value = systemEquipment.pumpedDownTo || reportData.pumpedDownTo || '';
+              
+              const recoveryTimeEl = document.getElementById('recoveryTime');
+              if (recoveryTimeEl) recoveryTimeEl.value = systemEquipment.recoveryTime || reportData.recoveryTime || '';
+              
+              // Load photos
+              const photosArray = existingReport.photos || reportData.photos || [];
+              console.log('Photos array from jobId:', photosArray);
+              if (photosArray && photosArray.length > 0) {
+                console.log('Loading photos:', photosArray.length, 'photos found');
+                photosArray.forEach((photo, index) => {
+                  console.log(`Photo ${index}:`, { url: photo.url, label: photo.label, caption: photo.caption });
+                  if (photo.url) {
+                    // Try to match by label first (PWA uses labels), then fall back to index
+                    let targetIndex = index;
+                    if (photo.label) {
+                      // Map PWA labels to main site photo slots
+                      const labelMap = {
+                        'Well Head': 0,
+                        'Pump House': 1,
+                        'Pressure Tank': 3,
+                        'Pressure Gauge': 3,
+                        'Water Softener': 11,
+                        'Water Heater': 11,
+                        'Well Cap': 1,
+                        'Well Seal': 1,
+                        'Discharge Pipe': 4,
+                        'Control Box': 4,
+                        'Electrical Panel': 4,
+                        'Well Permit Sign': 2,
+                        'Property Overview': 11,
+                        'Well Location': 11,
+                        'Additional Photo': 11
+                      };
+                      if (labelMap[photo.label] !== undefined) {
+                        targetIndex = labelMap[photo.label];
+                      }
+                    }
+                    
+                    // Use the first available slot if target index is taken
+                    if (targetIndex >= photos.length || photos[targetIndex]?.url) {
+                      // Find first empty slot
+                      for (let i = 0; i < photos.length; i++) {
+                        if (!photos[i]?.url) {
+                          targetIndex = i;
+                          break;
+                        }
+                      }
+                    }
+                    
+                    if (targetIndex < photos.length && photoGrid.children[targetIndex]) {
+                      photos[targetIndex] = photo;
+                      const slot = photoGrid.children[targetIndex];
+                      slot.classList.add('has-photo');
+                      // Support both 'caption' (main site) and 'label' (PWA)
+                      const caption = photo.caption || photo.label || photoCaptions[targetIndex];
+                      slot.innerHTML = `
+                        <img src="${photo.url}" alt="Photo ${targetIndex + 1}">
+                        <input type="text" class="photo-caption-input" id="caption${targetIndex}" value="${caption}" placeholder="Photo caption" onchange="updatePhotoCaption(${targetIndex})" onblur="updatePhotoCaption(${targetIndex})">
+                        <button type="button" class="delete-btn" onclick="deletePhoto(${targetIndex})">×</button>
+                      `;
+                      console.log(`Photo loaded into slot ${targetIndex}`);
+                    } else {
+                      console.warn(`Could not load photo into slot ${targetIndex} (out of bounds or slot taken)`);
+                    }
+                  }
+                });
+              } else {
+                console.log('No photos found in report - ensuring photo grid is initialized');
+                // Ensure photo grid has slots even if no photos
+                if (!photoGrid || photoGrid.children.length === 0) {
+                  initPhotoGrid();
+                }
+              }
+              
+              // Load flow readings
+              const flowReadingsFromJobId = existingReport.flow_readings || reportData.flowReadings || [];
+              if (flowReadingsFromJobId && flowReadingsFromJobId.length > 0) {
+                // Clear any existing rows first
+                if (window.flowTableBody) {
+                  window.flowTableBody.innerHTML = '';
+                }
+                flowRowCounter = 0;
+                flowReadings.length = 0;
+                
+                flowReadingsFromJobId.forEach(reading => {
+                  if (typeof window.addFlowRow === 'function') {
+                    window.addFlowRow(reading.time, reading.gpm);
+                  }
+                });
+                setTimeout(calculateFlowResults, 200);
+              } else {
+                // No flow readings - ensure initial intervals exist
+                console.log('No flow readings found - ensuring initial intervals are added');
+                if (window.flowTableBody) {
+                  // Only clear if we're going to add new intervals
+                  if (window.flowTableBody.children.length === 0) {
+                    window.flowTableBody.innerHTML = '';
+                  }
+                }
+                flowRowCounter = 0;
+                flowReadings.length = 0;
+                const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+                // Only add if table is empty
+                if (!window.flowTableBody || window.flowTableBody.children.length === 0) {
+                  initialIntervals.forEach(time => {
+                    if (typeof window.addFlowRow === 'function') {
+                      window.addFlowRow(time, '');
+                    }
+                  });
+                }
+              }
+            }
+            return;
+          } else {
+            console.log('No report found for jobId:', jobId);
+            // No report found - add initial intervals
+            setTimeout(() => {
+              if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+                flowRowCounter = 0;
+                flowReadings.length = 0;
+                const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+                initialIntervals.forEach(time => {
+                  window.addFlowRow(time, '');
+                });
+              }
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error loading report by jobId:', error);
+          // Continue - report might not exist yet
+          // Add initial intervals if table is empty
+          setTimeout(() => {
+            if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+              flowRowCounter = 0;
+              flowReadings.length = 0;
+              const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+              initialIntervals.forEach(time => {
+                window.addFlowRow(time, '');
+              });
+            }
+          }, 500);
+        }
+      }
+      
+      if (isEdit && reportId) {
+        let existingReport;
+        try {
+          console.log('Fetching report with ID:', reportId);
+          existingReport = await window.reportsAPI.getById(reportId);
+          console.log('Report fetched:', existingReport);
+        } catch (error) {
+          console.error('Error loading report:', error);
+          alert('Failed to load report data. Please refresh the page and try again.');
+          return;
+        }
+        
+        if (!existingReport) {
+          console.error('Report not found');
+          alert('Report not found. Please check the report ID.');
+          return;
+        }
+        
+        if (existingReport && existingReport.data) {
+          const reportData = existingReport.data;
+          console.log('Loading report data:', reportData);
+          console.log('Report ID:', reportId, 'Is Edit:', isEdit);
+          
+          // Well Basics - check both reportData.wellBasics (new format) and flat fields (old format)
+          const wellBasics = reportData.wellBasics || existingReport.well_basics || {};
+          const wellPermitEl = document.getElementById('wellPermit');
+          if (wellPermitEl) wellPermitEl.value = wellBasics.wellPermit || reportData.wellPermit || '';
+          
+          const totalDepthEl = document.getElementById('totalDepth');
+          if (totalDepthEl) {
+            totalDepthEl.value = wellBasics.totalDepth || reportData.totalDepth || '';
+            totalDepthEl.addEventListener('change', calculateWaterColumn);
+            totalDepthEl.addEventListener('input', calculateWaterColumn);
+          }
+          
+          const casingDepthEl = document.getElementById('casingDepth');
+          if (casingDepthEl) casingDepthEl.value = wellBasics.casingDepth || reportData.casingDepth || '';
+          
+          const staticWaterLevelEl = document.getElementById('staticWaterLevel');
+          if (staticWaterLevelEl) {
+            staticWaterLevelEl.value = wellBasics.staticWaterLevel || reportData.staticWaterLevel || '';
+            staticWaterLevelEl.addEventListener('change', calculateWaterColumn);
+            staticWaterLevelEl.addEventListener('input', calculateWaterColumn);
+          }
+          
+          const gpsLatEl = document.getElementById('gpsLat');
+          if (gpsLatEl) gpsLatEl.value = wellBasics.gpsLat || reportData.gpsLat || '';
+          
+          const gpsLongEl = document.getElementById('gpsLong');
+          if (gpsLongEl) gpsLongEl.value = wellBasics.gpsLong || reportData.gpsLong || '';
+          
+          const wellHeadLocationEl = document.getElementById('wellHeadLocation');
+          if (wellHeadLocationEl) wellHeadLocationEl.value = wellBasics.wellHeadLocation || reportData.wellHeadLocation || '';
+          
+          const coordinatesEl = document.getElementById('coordinates');
+          if (coordinatesEl) coordinatesEl.value = wellBasics.coordinates || reportData.coordinates || '';
+          
+          // Calculate water column after loading well basics
+          setTimeout(calculateWaterColumn, 100);
+
+          // Flow readings - load these first before adding initial rows
+          const flowReadingsData = reportData.flowReadings || existingReport.flow_readings || [];
+          if (flowReadingsData && flowReadingsData.length > 0) {
+            // Clear any existing rows first
+            if (window.flowTableBody) {
+              window.flowTableBody.innerHTML = '';
+            }
+            flowRowCounter = 0;
+            flowReadings.length = 0;
+            
+            flowReadingsData.forEach(reading => {
+              window.addFlowRow(reading.time, reading.gpm);
+            });
+            setTimeout(calculateFlowResults, 200);
+          } else {
+            // No flow readings - ensure initial intervals exist
+            console.log('No flow readings found - ensuring initial intervals are added');
+            if (window.flowTableBody) {
+              // Only clear if we're going to add new intervals
+              if (window.flowTableBody.children.length === 0) {
+                window.flowTableBody.innerHTML = '';
+              }
+            }
+            flowRowCounter = 0;
+            flowReadings.length = 0;
+            const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+            // Only add if table is empty
+            if (!window.flowTableBody || window.flowTableBody.children.length === 0) {
+              initialIntervals.forEach(time => {
+                if (typeof window.addFlowRow === 'function') {
+                  window.addFlowRow(time, '');
+                }
+              });
+            }
+          }
+          
+          // Ensure photo grid is initialized even if no photos were loaded
+          if (!photoGrid || photoGrid.children.length === 0) {
+            console.log('Photo grid not initialized after loading report, initializing now...');
+            initPhotoGrid();
+          }
+
+          // Discharge location and source (part of System Equipment)
+          const dischargeLocationEl = document.getElementById('dischargeLocation');
+          if (dischargeLocationEl) dischargeLocationEl.value = systemEquipment.dischargeLocation || reportData.dischargeLocation || '';
+          
+          const sourceOfOutputEl = document.getElementById('sourceOfOutput');
+          if (sourceOfOutputEl) sourceOfOutputEl.value = systemEquipment.sourceOfOutput || reportData.sourceOfOutput || '';
+
+          // Recovery (part of System Equipment)
+          const pumpedDownToEl = document.getElementById('pumpedDownTo');
+          if (pumpedDownToEl) pumpedDownToEl.value = systemEquipment.pumpedDownTo || reportData.pumpedDownTo || '';
+          
+          const recoveryTimeEl = document.getElementById('recoveryTime');
+          if (recoveryTimeEl) recoveryTimeEl.value = systemEquipment.recoveryTime || reportData.recoveryTime || '';
+
+          // System Equipment - check both reportData.systemEquipment (new format) and flat fields (old format)
+          const systemEquipment = reportData.systemEquipment || existingReport.system_equipment || {};
+          const pressureTankSizeEl = document.getElementById('pressureTankSize');
+          if (pressureTankSizeEl) pressureTankSizeEl.value = systemEquipment.pressureTankSize || reportData.pressureTankSize || '';
+          
+          const prechargePSIEl = document.getElementById('prechargePSI');
+          if (prechargePSIEl) prechargePSIEl.value = systemEquipment.prechargePSI || reportData.prechargePSI || '';
+          
+          const storageTanksEl = document.getElementById('storageTanks');
+          if (storageTanksEl) storageTanksEl.value = systemEquipment.storageTanks || reportData.storageTanks || '';
+          
+          const pumpMakeModelEl = document.getElementById('pumpMakeModel');
+          if (pumpMakeModelEl) pumpMakeModelEl.value = systemEquipment.pumpMakeModel || reportData.pumpMakeModel || '';
+          
+          const pumpConditionEl = document.getElementById('pumpCondition');
+          if (pumpConditionEl) pumpConditionEl.value = systemEquipment.pumpCondition || reportData.pumpCondition || '';
+          
+          const pressureTankConditionEl = document.getElementById('pressureTankCondition');
+          if (pressureTankConditionEl) pressureTankConditionEl.value = systemEquipment.pressureTankCondition || reportData.pressureTankCondition || '';
+          
+          const wiringConditionEl = document.getElementById('wiringCondition');
+          if (wiringConditionEl) wiringConditionEl.value = systemEquipment.wiringCondition || reportData.wiringCondition || '';
+          
+          const wellCapConditionEl = document.getElementById('wellCapCondition');
+          if (wellCapConditionEl) wellCapConditionEl.value = systemEquipment.wellCapCondition || reportData.wellCapCondition || '';
+          
+          const wellPumpLocationEl = document.getElementById('wellPumpLocation');
+          if (wellPumpLocationEl) wellPumpLocationEl.value = systemEquipment.wellPumpLocation || reportData.wellPumpLocation || '';
+          
+          const waterTreatmentEl = document.getElementById('waterTreatment');
+          if (waterTreatmentEl) {
+            // Handle both array and string formats, check systemEquipment first
+            const treatmentValue = systemEquipment.waterTreatment || reportData.waterTreatment;
+            const treatments = Array.isArray(treatmentValue) 
+              ? treatmentValue 
+              : (typeof treatmentValue === 'string' && treatmentValue 
+                  ? treatmentValue.split(',').map(t => t.trim()).filter(t => t)
+                  : []);
+            Array.from(waterTreatmentEl.options).forEach(option => {
+              option.selected = treatments.includes(option.value);
+            });
+          }
+          
+          const waterTreatmentOtherEl = document.getElementById('waterTreatmentOther');
+          if (waterTreatmentOtherEl) waterTreatmentOtherEl.value = systemEquipment.waterTreatmentOther || reportData.waterTreatmentOther || '';
+          
+          // Show/hide "Other" input based on selection
+          if (waterTreatmentEl) {
+            const hasOther = Array.from(waterTreatmentEl.selectedOptions).some(opt => opt.value === 'Other');
+            const otherInputDiv = document.getElementById('otherTreatmentInput');
+            if (otherInputDiv) {
+              otherInputDiv.style.display = hasOther ? 'block' : 'none';
+            }
+          }
+
+          // Water Quality - load all fields
+          const coliformEcoliEl = document.getElementById('coliformEcoli');
+          if (coliformEcoliEl) coliformEcoliEl.value = reportData.coliformEcoli || '';
+          
+          const nitrateEl = document.getElementById('nitrate');
+          if (nitrateEl) nitrateEl.value = reportData.nitrate || '';
+          
+          const arsenicEl = document.getElementById('arsenic');
+          if (arsenicEl) arsenicEl.value = reportData.arsenic || '';
+          
+          const leadEl = document.getElementById('lead');
+          if (leadEl) leadEl.value = reportData.lead || '';
+          
+          const ironEl = document.getElementById('iron');
+          if (ironEl) ironEl.value = reportData.iron || '';
+          
+          const manganeseEl = document.getElementById('manganese');
+          if (manganeseEl) manganeseEl.value = reportData.manganese || '';
+          
+          const hardnessEl = document.getElementById('hardness');
+          if (hardnessEl) hardnessEl.value = reportData.hardness || '';
+          
+          const phEl = document.getElementById('ph');
+          if (phEl) phEl.value = reportData.ph || '';
+          
+          const tdsEl = document.getElementById('tds');
+          if (tdsEl) tdsEl.value = reportData.tds || '';
+          
+          if (reportData.overallRating) {
+            const ratingInput = document.querySelector(`input[name="overallRating"][value="${reportData.overallRating}"]`);
+            if (ratingInput) ratingInput.checked = true;
+          }
+
+          // Recommendations - ensure Quill editor is initialized
+          if (!quill) {
+            console.log('Quill editor not initialized, initializing now...');
+            initQuillEditor();
+          }
+          if (reportData.recommendations) {
+            setTimeout(() => {
+              if (quill) {
+                quill.root.innerHTML = reportData.recommendations;
+                const textarea = document.getElementById('recommendations');
+                if (textarea) {
+                  textarea.value = reportData.recommendations;
+                }
+              } else {
+                // Retry if Quill still not ready
+                setTimeout(() => {
+                  if (quill && reportData.recommendations) {
+                    quill.root.innerHTML = reportData.recommendations;
+                    const textarea = document.getElementById('recommendations');
+                    if (textarea) {
+                      textarea.value = reportData.recommendations;
+                    }
+                  }
+                }, 500);
+              }
+            }, 800);
+          } else {
+            // No recommendations but ensure editor is visible
+            setTimeout(() => {
+              if (!quill) {
+                initQuillEditor();
+              }
+            }, 500);
+          }
+
+          // Photos - check both existingReport.photos and existingReport.data.photos
+          const photosArray = existingReport.photos || existingReport.data?.photos || [];
+          console.log('Photos array:', photosArray);
+          if (photosArray && photosArray.length > 0) {
+            console.log('Loading photos:', photosArray.length, 'photos found');
+            photosArray.forEach((photo, index) => {
+              console.log(`Photo ${index}:`, { url: photo.url, label: photo.label, caption: photo.caption });
+              if (photo.url) {
+                // Try to match by label first (PWA uses labels), then fall back to index
+                let targetIndex = index;
+                if (photo.label) {
+                  // Map PWA labels to main site photo slots
+                  const labelMap = {
+                    'Well Head': 0,
+                    'Pump House': 1,
+                    'Pressure Tank': 3,
+                    'Pressure Gauge': 3,
+                    'Water Softener': 11,
+                    'Water Heater': 11,
+                    'Well Cap': 1,
+                    'Well Seal': 1,
+                    'Discharge Pipe': 4,
+                    'Control Box': 4,
+                    'Electrical Panel': 4,
+                    'Well Permit Sign': 2,
+                    'Property Overview': 11,
+                    'Well Location': 11,
+                    'Additional Photo': 11
+                  };
+                  if (labelMap[photo.label] !== undefined) {
+                    targetIndex = labelMap[photo.label];
+                  }
+                }
+                
+                // Use the first available slot if target index is taken
+                if (targetIndex >= photos.length || photos[targetIndex]?.url) {
+                  // Find first empty slot
+                  for (let i = 0; i < photos.length; i++) {
+                    if (!photos[i]?.url) {
+                      targetIndex = i;
+                      break;
+                    }
+                  }
+                }
+                
+                if (targetIndex < photos.length && photoGrid.children[targetIndex]) {
+                  photos[targetIndex] = photo;
+                  const slot = photoGrid.children[targetIndex];
+                  slot.classList.add('has-photo');
+                  // Support both 'caption' (main site) and 'label' (PWA)
+                  const caption = photo.caption || photo.label || photoCaptions[targetIndex];
+                  slot.innerHTML = `
+                    <img src="${photo.url}" alt="Photo ${targetIndex + 1}">
+                    <input type="text" class="photo-caption-input" id="caption${targetIndex}" value="${caption}" placeholder="Photo caption" onchange="updatePhotoCaption(${targetIndex})" onblur="updatePhotoCaption(${targetIndex})">
+                    <button type="button" class="delete-btn" onclick="deletePhoto(${targetIndex})">×</button>
+                  `;
+                  console.log(`Photo loaded into slot ${targetIndex}`);
+                } else {
+                  console.warn(`Could not load photo into slot ${targetIndex} (out of bounds or slot taken)`);
+                }
+              }
+            });
+          } else {
+            console.log('No photos found in report - ensuring photo grid is initialized');
+            // Ensure photo grid has slots even if no photos
+            if (!photoGrid || photoGrid.children.length === 0) {
+              initPhotoGrid();
+            }
+          }
+          
+          // Flow readings - if no flow readings exist, add initial intervals
+          const flowReadingsFromReport = reportData.flowReadings || existingReport.flow_readings || [];
+          if (!flowReadingsFromReport || flowReadingsFromReport.length === 0) {
+            // Ensure initial intervals exist
+            console.log('No flow readings found - ensuring initial intervals are added');
+            if (window.flowTableBody) {
+              // Only clear if we're going to add new intervals
+              if (window.flowTableBody.children.length === 0) {
+                window.flowTableBody.innerHTML = '';
+              }
+            }
+            flowRowCounter = 0;
+            flowReadings.length = 0;
+            const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+            // Only add if table is empty
+            if (!window.flowTableBody || window.flowTableBody.children.length === 0) {
+              initialIntervals.forEach(time => {
+                if (typeof window.addFlowRow === 'function') {
+                  window.addFlowRow(time, '');
+                }
+              });
+            }
+          }
+        }
+      } else {
+        // Add initial rows with common intervals (only if not editing and no report loaded)
+        // Start at 15 minutes, go up to 120 minutes
+        setTimeout(() => {
+          if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+            flowRowCounter = 0;
+            flowReadings.length = 0;
+            const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+            initialIntervals.forEach(time => {
+              window.addFlowRow(time, '');
+            });
+          }
+        }, 100);
+      }
+    }
+    
+    // Also ensure initial intervals are added if table is empty after page loads
+    setTimeout(() => {
+      if (window.flowTableBody && window.flowTableBody.children.length === 0 && !isEdit) {
+        flowRowCounter = 0;
+        flowReadings.length = 0;
+        const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+        initialIntervals.forEach(time => {
+          window.addFlowRow(time, '');
+        });
+      }
+    }, 1000);
+
+    // Wait for w3.includeHTML to complete and DOM to be ready
+    function initializePage() {
+      // Ensure photo grid is initialized
+      if (!photoGrid || photoGrid.children.length === 0) {
+        console.log('Photo grid not initialized, initializing now...');
+        initPhotoGrid();
+      }
+      
+      // Ensure flow table is initialized
+      if (!window.flowTableBody) {
+        console.log('Flow table not initialized, initializing now...');
+        initFlowTable();
+      }
+      
+      // Ensure flow intervals are added if table is empty
+      if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+        console.log('Flow table is empty, adding initial intervals...');
+        flowRowCounter = 0;
+        flowReadings.length = 0;
+        const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+        initialIntervals.forEach(time => {
+          if (typeof window.addFlowRow === 'function') {
+            window.addFlowRow(time, '');
+          }
+        });
+      }
+      
+      // Wait for DOM to be fully ready before loading report data
+      function tryLoadReport() {
+        // Check if form elements exist
+        const wellPermitEl = document.getElementById('wellPermit');
+        if (!wellPermitEl) {
+          console.log('Form not ready yet, retrying...');
+          setTimeout(tryLoadReport, 100);
+          return;
+        }
+        console.log('Form ready, loading report data...');
+        loadExistingReport();
+      }
+      
+      // Wait a bit for w3.includeHTML to finish loading the header, then try loading
+      setTimeout(tryLoadReport, 500);
+    }
+    
+    // Initialize everything when DOM is ready
+    function initializeAll() {
+      console.log('Initializing all components...');
+      initFlowTable();
+      initPhotoGrid();
+      
+      // Add initial flow intervals after a short delay to ensure table is ready
+      setTimeout(() => {
+        if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+          console.log('Adding initial flow intervals...');
+          flowRowCounter = 0;
+          flowReadings.length = 0;
+          const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+          initialIntervals.forEach(time => {
+            if (typeof window.addFlowRow === 'function') {
+              window.addFlowRow(time, '');
+            }
+          });
+        }
+      }, 200);
+      
+      // Ensure photo grid has slots
+      setTimeout(() => {
+        if (photoGrid && photoGrid.children.length === 0) {
+          console.log('Photo grid is empty, re-initializing...');
+          initPhotoGrid();
+        }
+      }, 200);
+      
+      initializePage();
+    }
+    
+    // Force immediate initialization - run multiple times to ensure it works
+    console.log('Script loaded - starting initialization sequence');
+    
+    // Try immediately
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      console.log('Document ready, initializing immediately');
+      initializeAll();
+    }
+    
+    // Also listen for DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMContentLoaded - initializing all components');
+      initializeAll();
+    });
+    
+    // Final fallback - run after everything else
+    window.addEventListener('load', function() {
+      console.log('Window load - final initialization check');
+      setTimeout(function() {
+        // Force initialization if still not done
+        if (!photoGrid || photoGrid.children.length === 0) {
+          console.log('Photo grid still empty on window load, forcing init...');
+          initPhotoGrid();
+        }
+        if (!window.flowTableBody || window.flowTableBody.children.length === 0) {
+          console.log('Flow table still empty on window load, forcing init...');
+          initFlowTable();
+          const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+          initialIntervals.forEach(time => {
+            if (typeof window.addFlowRow === 'function') {
+              window.addFlowRow(time, '');
+            }
+          });
+        }
+        if (!quill) {
+          console.log('Quill still not initialized on window load, forcing init...');
+          initQuillEditor();
+        }
+      }, 500);
+    });
+    
+    // Final safety check after delays to ensure everything is initialized
+    setTimeout(function() {
+      // Verify components are initialized
+      if (!window.flowTableBody) {
+        console.log('Final check: Retrying flow table initialization');
+        initFlowTable();
+      }
+      if (!photoGrid || photoGrid.children.length === 0) {
+        console.log('Final check: Retrying photo grid initialization');
+        initPhotoGrid();
+      }
+      
+      // Verify addFlowRow is accessible
+      console.log('addFlowRow accessible:', typeof window.addFlowRow);
+      
+      // Ensure initial flow intervals are added if table is still empty
+      if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+        console.log('Final check: Flow table still empty, adding initial intervals');
+        flowRowCounter = 0;
+        flowReadings.length = 0;
+        const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+        initialIntervals.forEach(time => {
+          if (typeof window.addFlowRow === 'function') {
+            window.addFlowRow(time, '');
+          }
+        });
+      }
+      
+      // Ensure photo grid has slots
+      if (photoGrid && photoGrid.children.length === 0) {
+        console.log('Final check: Photo grid still empty, re-initializing');
+        initPhotoGrid();
+      }
+    }, 1500);
+
+    // calculateFlowResults and calculateWaterColumn are now in js/admin-job-detail-calculations.js
+    // Functions are available via window.calculateFlowResults and window.calculateWaterColumn
+
+      // Auto-save draft every 30 seconds
+      setInterval(function() {
+        // Update hidden textarea with Quill content before saving
+        if (quill) {
+          document.getElementById('recommendations').value = quill.root.innerHTML;
+        }
+        
+        // Update photo captions from input fields
+        photos.forEach((photo, index) => {
+          const captionInput = document.getElementById(`caption${index}`);
+          if (captionInput) {
+            photo.caption = captionInput.value || photoCaptions[index];
+          }
+        });
+        
+        const formData = new FormData(document.getElementById('reportForm'));
+        const data = {};
+        formData.forEach((value, key) => {
+          // Handle multiple select for waterTreatment
+          if (key === 'waterTreatment') {
+            if (!data[key]) {
+              data[key] = [];
+            }
+            if (value) {
+              data[key].push(value);
+            }
+          } else {
+            data[key] = value;
+          }
+        });
+        // If waterTreatment is empty array, set to empty string
+        if (data.waterTreatment && data.waterTreatment.length === 0) {
+          data.waterTreatment = '';
+        }
+        data.photos = photos.filter(p => p.url);
+      
+      // Save flow readings
+      const flowData = [];
+      const tableBody = document.getElementById('window.flowTableBody');
+      if (!tableBody) {
+        console.error('Flow table body not found');
+        return;
+      }
+      const rows = tableBody.querySelectorAll('tr');
+      rows.forEach(row => {
+        const timeInput = row.querySelector('.flow-time');
+        const gpmInput = row.querySelector('.flow-gpm');
+        if (timeInput && gpmInput && timeInput.value && gpmInput.value) {
+          flowData.push({ 
+            time: parseFloat(timeInput.value), 
+            gpm: parseFloat(gpmInput.value) 
+          });
+        }
+      });
+      data.flowReadings = flowData;
+      
+      localStorage.setItem(`reportDraft_${jobId}`, JSON.stringify(data));
+    }, 30000);
+
+    // Load draft if exists (only if not editing existing report)
+    const draft = localStorage.getItem(`reportDraft_${jobId}`);
+    if (draft && !isEdit) {
+      const draftData = JSON.parse(draft);
+      Object.keys(draftData).forEach(key => {
+        if (key !== 'photos') {
+          if (key === 'recommendations') {
+            // Set Quill editor content
+            if (draftData[key] && quill) {
+              quill.root.innerHTML = draftData[key];
+              document.getElementById('recommendations').value = draftData[key];
+            }
+          } else if (key === 'waterTreatment') {
+            // Handle multiple select for waterTreatment
+            const element = document.getElementById('waterTreatment');
+            if (element && draftData[key]) {
+              const treatments = Array.isArray(draftData[key]) 
+                ? draftData[key] 
+                : draftData[key].split(',').map(t => t.trim());
+              Array.from(element.options).forEach(option => {
+                option.selected = treatments.includes(option.value);
+              });
+            }
+          } else {
+            const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+            if (element) {
+              if (element.type === 'radio') {
+                if (element.value === draftData[key]) {
+                  element.checked = true;
+                }
+              } else {
+                element.value = draftData[key];
+              }
+            }
+          }
+        }
+      });
+      if (draftData.photos) {
+        draftData.photos.forEach((photo, index) => {
+          if (photo.url && index < photos.length) {
+            photos[index] = photo;
+            const slot = photoGrid.children[index];
+            slot.classList.add('has-photo');
+                // Support both 'caption' (main site) and 'label' (PWA)
+                const caption = photo.caption || photo.label || photoCaptions[index];
+            slot.innerHTML = `
+              <img src="${photo.url}" alt="Photo ${index + 1}">
+              <input type="text" class="photo-caption-input" id="caption${index}" value="${caption}" placeholder="Photo caption" onchange="updatePhotoCaption(${index})" onblur="updatePhotoCaption(${index})">
+              <button type="button" class="delete-btn" onclick="deletePhoto(${index})">×</button>
+            `;
+          }
+        });
+      }
+      
+      // Restore flow readings if they exist
+      if (draftData.flowReadings && Array.isArray(draftData.flowReadings)) {
+        // Clear existing rows
+        if (window.flowTableBody) {
+          window.flowTableBody.innerHTML = '';
+        }
+        flowRowCounter = 0;
+        flowReadings.length = 0;
+        
+        // Add rows from draft
+        draftData.flowReadings.forEach(reading => {
+          window.addFlowRow(reading.time, reading.gpm);
+        });
+        
+        // Recalculate results
+        setTimeout(calculateFlowResults, 100);
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('reportForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Update hidden textarea with Quill content before submission
+      if (quill) {
+        document.getElementById('recommendations').value = quill.root.innerHTML;
+      }
+
+      // Update photo captions from input fields before submission
+      photos.forEach((photo, index) => {
+        const captionInput = document.getElementById(`caption${index}`);
+        if (captionInput) {
+          photo.caption = captionInput.value || photoCaptions[index];
+        }
+      });
+
+      const formData = new FormData(this);
+      const reportData = {};
+      formData.forEach((value, key) => {
+        // Handle multiple select for waterTreatment
+        if (key === 'waterTreatment') {
+          if (!reportData[key]) {
+            reportData[key] = [];
+          }
+          if (value) {
+            reportData[key].push(value);
+          }
+        } else {
+          reportData[key] = value;
+        }
+      });
+      // If waterTreatment is empty array, set to empty string
+      if (reportData.waterTreatment && reportData.waterTreatment.length === 0) {
+        reportData.waterTreatment = '';
+      }
+
+      // Collect flow readings
+      const flowData = [];
+      const tableBody = document.getElementById('window.flowTableBody');
+      if (!tableBody) {
+        alert('Flow table not found');
+        return;
+      }
+      const rows = tableBody.querySelectorAll('tr');
+      rows.forEach(row => {
+        const timeInput = row.querySelector('.flow-time');
+        const gpmInput = row.querySelector('.flow-gpm');
+        if (timeInput && gpmInput && timeInput.value && gpmInput.value) {
+          flowData.push({ 
+            time: parseFloat(timeInput.value), 
+            gpm: parseFloat(gpmInput.value) 
+          });
+        }
+      });
+      // Sort by time
+      flowData.sort((a, b) => a.time - b.time);
+      reportData.flowReadings = flowData;
+
+      // Organize Well Basics fields
+      reportData.wellBasics = {
+        wellPermit: reportData.wellPermit || '',
+        totalDepth: reportData.totalDepth || '',
+        casingDepth: reportData.casingDepth || '',
+        staticWaterLevel: reportData.staticWaterLevel || '',
+        gpsLat: reportData.gpsLat || '',
+        gpsLong: reportData.gpsLong || '',
+        wellHeadLocation: reportData.wellHeadLocation || '',
+        coordinates: reportData.coordinates || '',
+      };
+
+      // Organize System Equipment fields
+      reportData.systemEquipment = {
+        pressureTankSize: reportData.pressureTankSize || '',
+        prechargePSI: reportData.prechargePSI || '',
+        storageTanks: reportData.storageTanks || '',
+        pumpMakeModel: reportData.pumpMakeModel || '',
+        pumpCondition: reportData.pumpCondition || '',
+        pressureTankCondition: reportData.pressureTankCondition || '',
+        wiringCondition: reportData.wiringCondition || '',
+        wellCapCondition: reportData.wellCapCondition || '',
+        wellPumpLocation: reportData.wellPumpLocation || '',
+        waterTreatment: reportData.waterTreatment || '',
+        waterTreatmentOther: reportData.waterTreatmentOther || '',
+        dischargeLocation: reportData.dischargeLocation || '',
+        sourceOfOutput: reportData.sourceOfOutput || '',
+        pumpedDownTo: reportData.pumpedDownTo || '',
+        recoveryTime: reportData.recoveryTime || '',
+      };
+
+      // Calculate results
+      const readings = flowData.map(r => r.gpm);
+      if (readings.length >= 4) {
+        const last4 = readings.slice(-4);
+        reportData.sustainedYield = last4.reduce((a, b) => a + b, 0) / last4.length;
+      }
+      if (readings.length > 0) {
+        reportData.peakFlow = Math.max(...readings);
+        // Average Flow Rate
+        reportData.averageFlowRate = readings.reduce((a, b) => a + b, 0) / readings.length;
+        // Volume Yields
+        reportData.volume12hr = reportData.averageFlowRate * 720; // 12 hours = 720 minutes
+        reportData.volume24hr = reportData.averageFlowRate * 1440; // 24 hours = 1440 minutes
+      }
+
+      try {
+        let report;
+        
+        if (isEdit && reportId) {
+          // Update existing report
+          const existingReport = await window.reportsAPI.getById(reportId);
+          report = {
+            ...existingReport,
+            data: reportData,
+            photos: photos.filter(p => p.url),
+            wellBasics: reportData.wellBasics,
+            systemEquipment: reportData.systemEquipment,
+          };
+          await window.reportsAPI.update(reportId, report);
+          document.getElementById('toast').textContent = 'Report updated successfully!';
+        } else {
+          // Create new report
+          report = {
+            jobId: jobId,
+            data: reportData,
+            photos: photos.filter(p => p.url),
+            wellBasics: reportData.wellBasics,
+            systemEquipment: reportData.systemEquipment,
+            createdBy: sessionStorage.getItem('adminEmail')
+          };
+          report = await window.reportsAPI.create(report);
+          document.getElementById('toast').textContent = 'Report saved successfully!';
+        }
+
+        // Update job status to "awaiting-payment" when report is generated (only for new reports)
+        if (!isEdit) {
+          try {
+            const currentJob = await window.jobsAPI.getById(jobId);
+            await window.jobsAPI.update(jobId, {
+              ...currentJob,
+              status: 'awaiting-payment',
+              reportId: report.id,
+              reportGeneratedAt: new Date().toISOString()
+            });
+          } catch (error) {
+            console.warn('Could not update job status:', error);
+          }
+        }
+
+        // Show toast
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+          // Redirect to preview page
+          window.location.href = `admin-report-preview.html?reportId=${report.id}`;
+        }, 2000);
+      } catch (error) {
+        console.error('Error saving report:', error);
+        let errorMessage = 'Failed to save report: ' + error.message;
+        
+        // Provide helpful message for quota errors
+        if (error.message.includes('quota') || error.message.includes('QuotaExceeded')) {
+          errorMessage = 'localStorage is full. Please start the backend server (npm start) to save reports with photos. ' +
+            'Reports saved to localStorage cannot include photos due to size limitations.';
+        } else if (error.message === 'API_UNAVAILABLE') {
+          errorMessage = 'Backend server is not running. Please start it with "npm start" to save reports properly. ' +
+            'Reports saved to localStorage cannot include photos.';
+        }
+        
+        alert(errorMessage);
+      }
+    });
+    
+    // Manual initialization trigger - can be called from console
+    window.forceInitialize = function() {
+      console.log('=== FORCE INITIALIZATION TRIGGERED ===');
+      initPhotoGrid();
+      initFlowTable();
+      initQuillEditor();
+      
+      setTimeout(() => {
+        if (window.flowTableBody && window.flowTableBody.children.length === 0) {
+          const initialIntervals = [15, 30, 45, 60, 75, 90, 105, 120];
+          initialIntervals.forEach(time => {
+            if (typeof window.addFlowRow === 'function') {
+              window.addFlowRow(time, '');
+            }
+          });
+        }
+      }, 300);
+      
+      console.log('Force initialization complete. Check page now.');
+    };
+    
+    // Log that script has loaded
+    console.log('✅ admin-job-detail.html script loaded');
+    console.log('Available functions: initPhotoGrid, initFlowTable, initQuillEditor, forceInitialize');
+    console.log('To manually initialize, run: window.forceInitialize()');
+  </script>
+</body>
+</html>
+

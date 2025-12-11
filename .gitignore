@@ -1,0 +1,30 @@
+node_modules/
+data/
+*.log
+.DS_Store
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# PWA
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/sw.js.map
+public/workbox-*.js.map
+public/worker-*.js.map
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Large media files and client assets (exclude Misc folder with 7000+ client files)
+images/Misc/

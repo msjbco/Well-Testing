@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Preview | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Hide any text content in w3-include-html div before header loads */
+    [w3-include-html] {
+      font-size: 0 !important;
+      line-height: 0 !important;
+      color: transparent !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      min-height: 0 !important;
+    }
+    [w3-include-html]::before,
+    [w3-include-html]::after {
+      content: none !important;
+      display: none !important;
+    }
+    [w3-include-html] > * {
+      font-size: initial;
+      line-height: normal;
+      color: initial;
+      visibility: visible;
+    }
+    [w3-include-html] header {
+      visibility: visible !important;
+      height: auto !important;
+      min-height: 80px !important;
+    }
+    
+    .preview-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+    .preview-header {
+      background: var(--navy);
+      color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .preview-header h1 {
+      color: white;
+      margin: 0 0 1rem 0;
+    }
+    .preview-actions {
+      position: fixed;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 1000;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .btn-secondary {
+      background: var(--brown);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: background 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: #6d5635;
+    }
+    .btn-edit {
+      background: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      text-align: center;
+      white-space: nowrap;
+      transition: background 0.3s ease;
+    }
+    .btn-edit:hover {
+      background: #1f4d3a;
+    }
+    .preview-actions .btn {
+      text-align: center;
+      white-space: nowrap;
+    }
+    .btn-receipt {
+      background: var(--navy);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: background 0.3s ease;
+    }
+    .btn-receipt:hover {
+      background: #1a3a5c;
+    }
+    /* Receipt Modal */
+    .receipt-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    .receipt-modal.active {
+      display: flex;
+    }
+    .receipt-modal-content {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .receipt-modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #ddd;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .receipt-modal-close:hover {
+      background: #bbb;
+    }
+    .receipt-modal-content h2 {
+      color: var(--navy);
+      margin: 0 0 2rem 0;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--green);
+    }
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    .receipt-table thead {
+      border-bottom: 2px solid #ddd;
+    }
+    .receipt-table th {
+      text-align: left;
+      padding: 1rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .receipt-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    .receipt-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .receipt-table tfoot {
+      border-top: 2px solid #ddd;
+    }
+    .receipt-table tfoot td {
+      padding: 1rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--navy);
+    }
+    .receipt-table .amount {
+      text-align: right;
+    }
+    .report-section {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    .report-section h2 {
+      color: var(--navy);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--green);
+    }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .report-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .report-label {
+      color: var(--gray);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .report-value {
+      color: var(--navy);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .photo-item {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .photo-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .photo-caption {
+      padding: 0.8rem;
+      background: #f9f9f9;
+      font-size: 0.9rem;
+      color: var(--navy);
+      font-style: italic;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .flow-table {
+      width: 90%;
+      border-collapse: collapse;
+      margin: 1.5rem auto;
+    }
+    .flow-table th,
+    .flow-table td {
+      padding: 0.8rem;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    .flow-table th {
+      background: var(--navy);
+      color: white;
+      font-weight: 600;
+    }
+    .recommendations-content {
+      padding: 1.5rem;
+      background: #f9f9f9;
+      border-radius: 8px;
+      line-height: 1.8;
+    }
+    .recommendations-content h1,
+    .recommendations-content h2,
+    .recommendations-content h3 {
+      color: var(--navy);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .recommendations-content ul,
+    .recommendations-content ol {
+      margin-left: 2rem;
+      margin-bottom: 1rem;
+    }
+    .recommendations-content p {
+      margin-bottom: 1rem;
+    }
+    
+    /* Responsive adjustments for action buttons */
+    @media (max-width: 1024px) {
+      .preview-actions {
+        right: 1rem;
+        padding: 1rem;
+      }
+      .btn-secondary,
+      .btn-edit,
+      .preview-actions .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .preview-actions {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        flex-direction: row;
+        justify-content: center;
+        margin: 2rem 0;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+      }
+    }
+    
+    @media print {
+      /* Hide navigation header */
+      .site-header,
+      [w3-include-html],
+      header {
+        display: none !important;
+      }
+      
+      /* Remove body padding that was for fixed header */
+      body {
+        padding-top: 0 !important;
+      }
+      
+      .preview-actions {
+        display: none;
+      }
+      .preview-header {
+        page-break-after: avoid;
+      }
+      .report-section {
+        page-break-inside: avoid;
+      }
+      
+      /* Flow & Yield Test section - keep table, results, recovery, and % change note together */
+      .flow-yield-section {
+        page-break-inside: avoid;
+      }
+      .flow-table {
+        font-size: 0.85rem;
+      }
+      .flow-table th,
+      .flow-table td {
+        padding: 0.5rem;
+      }
+      .flow-table-large {
+        font-size: 0.75rem;
+      }
+      .flow-table-large th,
+      .flow-table-large td {
+        padding: 0.4rem;
+      }
+      .flow-results-summary {
+        page-break-inside: avoid;
+      }
+      .flow-recovery-note {
+        page-break-inside: avoid;
+        page-break-before: avoid;
+      }
+      .flow-percent-note {
+        page-break-inside: avoid;
+        page-break-before: avoid;
+        page-break-after: avoid;
+      }
+      /* If table is large (>12 rows), move results to next page */
+      .flow-results-new-page {
+        page-break-before: always;
+      }
+      
+      /* System Equipment, Water Quality, and Recommendations always start on new page */
+      .system-equipment-section {
+        page-break-before: always;
+      }
+      .water-quality-section {
+        page-break-before: always;
+      }
+      .recommendations-section {
+        page-break-before: always;
+      }
+      
+      /* Prevent photo items from breaking across pages */
+      .photo-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 1rem;
+      }
+      .photo-item img {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .photo-caption {
+        page-break-before: avoid !important;
+        break-before: avoid !important;
+      }
+      
+      /* GPS Coordinates link styling for print */
+      .report-value a {
+        color: var(--navy) !important;
+        text-decoration: none !important;
+      }
+      
+      /* Well head map styling for print */
+      #wellHeadMap_* {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      
+      /* Ensure content starts at top */
+      .preview-container {
+        padding-top: 0;
+        margin-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <!-- Check authentication -->
+  <script>
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = 'admin-login.html';
+    }
+  </script>
+
+  <div class="preview-container">
+    <div class="preview-header">
+      <h1>Well Test Report</h1>
+      <p id="reportDate"></p>
+    </div>
+
+    <div id="reportContent">
+      <!-- Report content will be loaded here -->
+    </div>
+
+    <div class="preview-actions">
+      <a href="admin-dashboard.html" class="btn-secondary">Back to Dashboard</a>
+      <a href="#" id="editReportBtn" class="btn-edit">Edit Report</a>
+      <button onclick="window.print()" class="btn">Print Report</button>
+      <button onclick="showReceiptModal()" class="btn-receipt">View Receipt</button>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="receipt-modal" id="receiptModal" onclick="closeReceiptModal(event)">
+      <div class="receipt-modal-content" onclick="event.stopPropagation()">
+        <button class="receipt-modal-close" onclick="closeReceiptModal()">&times;</button>
+        <div id="receiptModalBody">
+          <!-- Receipt content will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script src="api.js"></script>
+  <!-- Leaflet for map display -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Hide the include div initially
+    document.addEventListener('DOMContentLoaded', function() {
+      const includeDiv = document.querySelector('[w3-include-html]');
+      if (includeDiv) {
+        includeDiv.style.display = 'none';
+      }
+      
+      w3.includeHTML(function() {
+        // Show the div after header loads
+        if (includeDiv) {
+          includeDiv.style.display = 'block';
+        }
+      });
+    });
+  </script>
+  <script>
+    // Get report ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportId = urlParams.get('reportId');
+
+    if (!reportId) {
+      document.getElementById('reportContent').innerHTML = `
+        <div class="report-section">
+          <p style="color:var(--gray);text-align:center">No report ID provided.</p>
+        </div>
+      `;
+    } else {
+      // Function to calculate receipt (defined before loadReport so it can be used)
+      function calculateReceipt(job, data) {
+        const lineItems = [];
+        let total = 0;
+
+        // Check if cistern + inspection (no flow test charge)
+        const hasCistern = job && job.hasCistern === 'yes';
+        const hasInspection = job && job.equipmentInspection === 'yes';
+        const isCisternInspection = hasCistern && hasInspection;
+
+        // Flow Test - $449 (unless cistern + inspection)
+        if (!isCisternInspection) {
+          lineItems.push({ description: 'Flow Rate Test', amount: 449 });
+          total += 449;
+        }
+
+        // Equipment Inspection - $150 (if cistern + inspection)
+        if (isCisternInspection) {
+          lineItems.push({ description: 'Well Equipment Inspection', amount: 150 });
+          total += 150;
+        }
+
+        // Water Quality Tests - $50 each (only if value exists)
+        const waterQualityTests = [
+          { field: 'coliformEcoli', name: 'Coliform / E.coli Test' },
+          { field: 'nitrate', name: 'Nitrate Test' },
+          { field: 'arsenic', name: 'Arsenic Test' },
+          { field: 'lead', name: 'Lead Test' },
+          { field: 'iron', name: 'Iron Test' },
+          { field: 'manganese', name: 'Manganese Test' },
+          { field: 'hardness', name: 'Hardness Test' },
+          { field: 'ph', name: 'pH Test' },
+          { field: 'tds', name: 'TDS Test' }
+        ];
+
+        waterQualityTests.forEach(test => {
+          const value = data[test.field];
+          // Check if value exists (for coliformEcoli, check if it's Present or Absent)
+          if (test.field === 'coliformEcoli') {
+            if (value && (value === 'Present' || value === 'Absent')) {
+              lineItems.push({ description: test.name, amount: 50 });
+              total += 50;
+            }
+          } else {
+            // For numeric fields, check if value exists and is not empty
+            if (value !== null && value !== undefined && value !== '') {
+              lineItems.push({ description: test.name, amount: 50 });
+              total += 50;
+            }
+          }
+        });
+
+        return { lineItems, total };
+      }
+
+      // Load report data
+      async function loadReport() {
+        try {
+          let report;
+          try {
+            report = await window.reportsAPI.getById(reportId);
+          } catch (error) {
+            console.warn('API unavailable, trying localStorage fallback:', error);
+            // Fallback to localStorage
+            const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
+            report = reports.find(r => r.id === reportId);
+            if (!report) {
+              throw new Error('Report not found in localStorage');
+            }
+          }
+          
+          if (!report || !report.data) {
+            document.getElementById('reportContent').innerHTML = `
+              <div class="report-section">
+                <p style="color:var(--gray);text-align:center">Report not found.</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Load job data
+          let job = null;
+          try {
+            job = await window.jobsAPI.getById(report.jobId);
+          } catch (error) {
+            console.warn('Could not load job data from API, trying localStorage:', error);
+            // Fallback to localStorage
+            const jobs = JSON.parse(localStorage.getItem('scheduledJobs') || '[]');
+            job = jobs.find(j => j.id === report.jobId);
+          }
+
+          const data = report.data;
+
+        // Load tech data if job has assigned tech
+        let techName = null;
+        if (job && job.assignedTechId) {
+          try {
+            const techs = await window.techsAPI.getAll();
+            const tech = techs.find(t => t.id === job.assignedTechId);
+            if (tech) {
+              techName = tech.name;
+            }
+          } catch (error) {
+            console.warn('Could not load tech data:', error);
+          }
+        }
+
+        // Set report date and tech name
+        const reportDate = new Date(report.createdAt);
+        let reportDateText = `Generated: ${reportDate.toLocaleDateString()} at ${reportDate.toLocaleTimeString()}`;
+        if (techName) {
+          reportDateText += ` | Testing Technician: ${techName}`;
+        }
+        document.getElementById('reportDate').textContent = reportDateText;
+
+        // Set edit button link
+        document.getElementById('editReportBtn').href = `admin-job-detail.html?jobId=${report.jobId}&reportId=${reportId}&edit=true`;
+
+        // Build report HTML
+        let reportHTML = '';
+
+        // Job Information
+        reportHTML += `
+          <div class="report-section">
+            <h2>Job Information</h2>
+            <div class="report-grid">
+              <div class="report-item">
+                <div class="report-label">Property Address</div>
+                <div class="report-value">${job ? job.propertyAddress : 'N/A'}</div>
+              </div>
+              <div class="report-item">
+                <div class="report-label">County</div>
+                <div class="report-value">${job ? job.county : 'N/A'}</div>
+              </div>
+              <div class="report-item">
+                <div class="report-label">Client Name</div>
+                <div class="report-value">${job ? job.name : 'N/A'}</div>
+              </div>
+              <div class="report-item">
+                <div class="report-label">Well Permit #</div>
+                <div class="report-value">${data.wellPermit || 'Not provided'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Photos
+        if (report.photos && report.photos.length > 0) {
+          reportHTML += `
+            <div class="report-section">
+              <h2>Photos</h2>
+              <div class="photo-grid">
+          `;
+          report.photos.forEach(photo => {
+            if (photo.url) {
+              reportHTML += `
+                <div class="photo-item">
+                  <img src="${photo.url}" alt="${photo.caption || 'Photo'}">
+                  <div class="photo-caption">${photo.caption || 'Photo'}</div>
+                </div>
+              `;
+            }
+          });
+          reportHTML += `
+              </div>
+            </div>
+          `;
+        }
+
+        // Well Basics
+        if (data.totalDepth || data.casingDepth || data.staticWaterLevel || data.gpsLat) {
+          reportHTML += `
+            <div class="report-section">
+              <h2>Well Basics</h2>
+              <div class="report-grid">
+          `;
+          if (data.totalDepth) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Total Depth</div>
+                <div class="report-value">${data.totalDepth} ft</div>
+              </div>
+            `;
+          }
+          if (data.casingDepth) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Casing Depth</div>
+                <div class="report-value">${data.casingDepth} ft</div>
+              </div>
+            `;
+          }
+          if (data.staticWaterLevel) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Static Water Level</div>
+                <div class="report-value">${data.staticWaterLevel} ft</div>
+              </div>
+            `;
+          }
+          // Get coordinates from coordinates field or GPS fields
+          let mapLat = null;
+          let mapLong = null;
+          let coordinatesText = '';
+          
+          if (data.coordinates) {
+            // Parse coordinates field (format: "lat, long" or "lat long")
+            const parts = data.coordinates.split(/[,\s]+/).filter(p => p.trim());
+            if (parts.length >= 2) {
+              mapLat = parseFloat(parts[0]);
+              mapLong = parseFloat(parts[1]);
+              coordinatesText = `${mapLat}, ${mapLong}`;
+            }
+          } else if (data.gpsLat && data.gpsLong) {
+            mapLat = parseFloat(data.gpsLat);
+            mapLong = parseFloat(data.gpsLong);
+            coordinatesText = `${mapLat}, ${mapLong}`;
+          }
+          
+          if (mapLat && mapLong && !isNaN(mapLat) && !isNaN(mapLong)) {
+            const mapsUrl = `https://www.google.com/maps?q=${mapLat},${mapLong}`;
+            reportHTML += `
+              <div class="report-item" style="grid-column:1/-1">
+                <div class="report-label">GPS Coordinates</div>
+                <div class="report-value">
+                  <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;font-weight:600">
+                    ${coordinatesText}
+                  </a>
+                </div>
+              </div>
+              <div class="report-item" style="grid-column:1/-1;margin-top:1rem">
+                <div class="report-label">Well Head Location Map</div>
+                <div id="wellHeadMap_${report.id || 'map'}" style="width:100%;height:400px;border:2px solid #ddd;border-radius:8px;margin-top:0.5rem"></div>
+              </div>
+            `;
+            
+            // Store coordinates for map initialization
+            if (!window.mapCoordinates) window.mapCoordinates = {};
+            const mapId = report.id || 'map';
+            window.mapCoordinates[mapId] = { lat: mapLat, lng: mapLong, reportId: report.id };
+          } else if (data.gpsLat && data.gpsLong) {
+            // Show link even if coordinates can't be parsed for map
+            const mapsUrl = `https://www.google.com/maps?q=${data.gpsLat},${data.gpsLong}`;
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">GPS Coordinates</div>
+                <div class="report-value">
+                  <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;font-weight:600">
+                    ${data.gpsLat}, ${data.gpsLong}
+                  </a>
+                </div>
+              </div>
+            `;
+          }
+          reportHTML += `
+              </div>
+            </div>
+          `;
+        }
+
+        // Flow & Yield Test
+        if (data.flowReadings && data.flowReadings.length > 0) {
+          // Helper function to format numbers with commas
+          function formatNumber(num) {
+            if (num >= 1000) {
+              return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            }
+            return num.toFixed(2);
+          }
+          
+          // Calculate % change for each reading
+          const readingsWithPercentChange = data.flowReadings.map((reading, index) => {
+            let percentChange = null;
+            let percentChangeColor = '#666';
+            if (index > 0) {
+              const previousGpm = data.flowReadings[index - 1].gpm;
+              if (previousGpm && previousGpm !== 0) {
+                percentChange = ((reading.gpm - previousGpm) / previousGpm) * 100;
+                if (percentChange > 0) {
+                  percentChangeColor = '#2e7d32'; // green
+                } else if (percentChange < 0) {
+                  percentChangeColor = '#d32f2f'; // red
+                }
+              }
+            }
+            return { ...reading, percentChange, percentChangeColor };
+          });
+          
+          // Calculate % Change for final 3 readings
+          let avgPercentChangeFinal3 = null;
+          let avgPercentChangeColor = '#666';
+          if (data.flowReadings.length >= 3) {
+            const final3 = data.flowReadings.slice(-3);
+            let totalPercentChange = 0;
+            let validChanges = 0;
+            
+            for (let i = 1; i < final3.length; i++) {
+              const previousGpm = final3[i - 1].gpm;
+              const currentGpm = final3[i].gpm;
+              if (previousGpm && previousGpm !== 0) {
+                const change = ((currentGpm - previousGpm) / previousGpm) * 100;
+                totalPercentChange += change;
+                validChanges++;
+              }
+            }
+            
+            if (validChanges > 0) {
+              avgPercentChangeFinal3 = totalPercentChange / validChanges;
+              if (avgPercentChangeFinal3 > 0) {
+                avgPercentChangeColor = '#2e7d32'; // green
+              } else if (avgPercentChangeFinal3 < 0) {
+                avgPercentChangeColor = '#d32f2f'; // red
+              }
+            }
+          }
+          
+          const rowCount = readingsWithPercentChange.length;
+          const tableClass = rowCount > 12 ? 'flow-table-large' : 'flow-table';
+          const resultsClass = rowCount > 12 ? 'flow-results-summary flow-results-new-page' : 'flow-results-summary';
+          
+          reportHTML += `
+            <div class="report-section flow-yield-section">
+              <h2>Flow & Yield Test</h2>
+              <table class="${tableClass}">
+                <thead>
+                  <tr>
+                    <th>Time (minutes)</th>
+                    <th>GPM Reading</th>
+                    <th>% Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+          readingsWithPercentChange.forEach(reading => {
+            const percentChangeDisplay = reading.percentChange !== null 
+              ? reading.percentChange.toFixed(2) + '%' 
+              : '--';
+            reportHTML += `
+              <tr>
+                <td>${reading.time}</td>
+                <td>${reading.gpm.toFixed(2)}</td>
+                <td style="color:${reading.percentChangeColor};font-weight:600;text-align:left">${percentChangeDisplay}</td>
+              </tr>
+            `;
+          });
+          reportHTML += `
+                </tbody>
+              </table>
+          `;
+          if (data.sustainedYield || data.peakFlow || data.averageFlowRate || avgPercentChangeFinal3 !== null) {
+            reportHTML += `
+              <div class="${resultsClass}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem;padding:1.5rem;background:#f4f0ea;border-radius:8px">
+            `;
+            if (data.sustainedYield) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Sustained Yield</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(data.sustainedYield)} GPM</div>
+                </div>
+              `;
+            }
+            if (data.peakFlow) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Peak Flow</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(data.peakFlow)} GPM</div>
+                </div>
+              `;
+            }
+            if (data.averageFlowRate) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Average Flow Rate</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(data.averageFlowRate)} GPM</div>
+                </div>
+              `;
+            }
+            if (avgPercentChangeFinal3 !== null) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">% Change (Final 3)</div>
+                  <div style="color:${avgPercentChangeColor};font-size:1.5rem;font-weight:700">${avgPercentChangeFinal3.toFixed(2)}%</div>
+                </div>
+              `;
+            }
+            if (data.volume12hr) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Volume Yield (12 hr)</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(data.volume12hr)} gal</div>
+                </div>
+              `;
+            }
+            if (data.volume24hr) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Volume Yield (24 hr)</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(data.volume24hr)} gal</div>
+                </div>
+              `;
+            }
+            // Calculate total water discharged during test
+            let totalWaterDischarged = 0;
+            if (data.flowReadings && data.flowReadings.length > 0) {
+              for (let i = 0; i < data.flowReadings.length; i++) {
+                const current = data.flowReadings[i];
+                const next = data.flowReadings[i + 1];
+                if (current.time !== null && current.gpm > 0) {
+                  if (next && next.time !== null) {
+                    const intervalMinutes = next.time - current.time;
+                    totalWaterDischarged += current.gpm * intervalMinutes;
+                  } else if (i === data.flowReadings.length - 1) {
+                    const avgInterval = data.flowReadings.length > 1 
+                      ? (current.time - data.flowReadings[0].time) / (data.flowReadings.length - 1)
+                      : 15;
+                    totalWaterDischarged += current.gpm * avgInterval;
+                  }
+                }
+              }
+            }
+            if (totalWaterDischarged > 0) {
+              reportHTML += `
+                <div style="text-align:center">
+                  <div style="color:var(--gray);font-size:0.9rem;margin-bottom:0.5rem">Total Water Discharged</div>
+                  <div style="color:var(--navy);font-size:1.5rem;font-weight:700">${formatNumber(totalWaterDischarged)} gallons</div>
+                </div>
+              `;
+            }
+            reportHTML += `</div>`;
+          }
+          
+          // Display discharge location and source of output
+          if (data.dischargeLocation || data.sourceOfOutput) {
+            reportHTML += `
+              <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+            `;
+            if (data.dischargeLocation) {
+              reportHTML += `
+                <div class="report-item">
+                  <div class="report-label">Location of Discharge</div>
+                  <div class="report-value">${data.dischargeLocation}</div>
+                </div>
+              `;
+            }
+            if (data.sourceOfOutput) {
+              reportHTML += `
+                <div class="report-item">
+                  <div class="report-label">Source of Output</div>
+                  <div class="report-value">${data.sourceOfOutput}</div>
+                </div>
+              `;
+            }
+            reportHTML += `</div>`;
+          }
+          if (data.pumpedDownTo && data.recoveryTime) {
+            reportHTML += `
+              <div class="flow-recovery-note" style="margin-top:1.5rem;padding:1rem;background:#f9f9f9;border-radius:8px">
+                <strong>Recovery:</strong> Pumped down to ${data.pumpedDownTo} ft, recovered in ${data.recoveryTime} minutes
+              </div>
+            `;
+          }
+          reportHTML += `
+            <div class="flow-percent-note" style="margin-top:1rem;padding:1rem;background:#f9f9f9;border-radius:8px;font-style:italic;color:#666">
+              <strong>% Change:</strong> Well is deemed stable if final 3 readings are within 10% variation, with a minimum of 120 minutes total test length.
+            </div>
+          `;
+          reportHTML += `</div>`;
+        }
+
+        // System Equipment
+        if (data.pressureTankSize || data.pumpMakeModel || data.pumpCondition) {
+          reportHTML += `
+            <div class="report-section system-equipment-section">
+              <h2>System Equipment</h2>
+              <div class="report-grid">
+          `;
+          if (data.pressureTankSize) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Pressure Tank Size</div>
+                <div class="report-value">${data.pressureTankSize} gallons</div>
+              </div>
+            `;
+          }
+          if (data.prechargePSI) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Pre-charge PSI</div>
+                <div class="report-value">${data.prechargePSI} PSI</div>
+              </div>
+            `;
+          }
+          if (data.storageTanks) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Storage Tanks</div>
+                <div class="report-value">${data.storageTanks} gallons</div>
+              </div>
+            `;
+          }
+          if (data.pumpMakeModel) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Pump Make/Model/HP</div>
+                <div class="report-value">${data.pumpMakeModel}</div>
+              </div>
+            `;
+          }
+          if (data.pumpCondition) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Pump Condition</div>
+                <div class="report-value">${data.pumpCondition}</div>
+              </div>
+            `;
+          }
+          if (data.pressureTankCondition) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Pressure Tank Condition</div>
+                <div class="report-value">${data.pressureTankCondition}</div>
+              </div>
+            `;
+          }
+          if (data.wiringCondition) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Wiring Condition</div>
+                <div class="report-value">${data.wiringCondition}</div>
+              </div>
+            `;
+          }
+          if (data.wellCapCondition) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Well Cap Condition</div>
+                <div class="report-value">${data.wellCapCondition}</div>
+              </div>
+            `;
+          }
+          reportHTML += `
+              </div>
+            </div>
+          `;
+        }
+
+        // Water Quality
+        if (data.coliformEcoli || data.nitrate || data.arsenic || data.lead) {
+          reportHTML += `
+            <div class="report-section water-quality-section">
+              <h2>Water Quality</h2>
+              <div class="report-grid">
+          `;
+          if (data.coliformEcoli) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Coliform / E.coli</div>
+                <div class="report-value">${data.coliformEcoli}</div>
+              </div>
+            `;
+          }
+          if (data.nitrate) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Nitrate</div>
+                <div class="report-value">${data.nitrate} mg/L</div>
+              </div>
+            `;
+          }
+          if (data.arsenic) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Arsenic</div>
+                <div class="report-value">${data.arsenic} ppb</div>
+              </div>
+            `;
+          }
+          if (data.lead) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Lead</div>
+                <div class="report-value">${data.lead} ppb</div>
+              </div>
+            `;
+          }
+          if (data.iron) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Iron</div>
+                <div class="report-value">${data.iron} mg/L</div>
+              </div>
+            `;
+          }
+          if (data.manganese) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Manganese</div>
+                <div class="report-value">${data.manganese} mg/L</div>
+              </div>
+            `;
+          }
+          if (data.hardness) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Hardness</div>
+                <div class="report-value">${data.hardness} mg/L</div>
+              </div>
+            `;
+          }
+          if (data.ph) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">pH</div>
+                <div class="report-value">${data.ph}</div>
+              </div>
+            `;
+          }
+          if (data.tds) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">TDS</div>
+                <div class="report-value">${data.tds} mg/L</div>
+              </div>
+            `;
+          }
+          if (data.overallRating) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Overall Rating</div>
+                <div class="report-value">${data.overallRating}</div>
+              </div>
+            `;
+          }
+          reportHTML += `
+              </div>
+            </div>
+          `;
+        }
+
+        // Recommendations
+        if (data.recommendations) {
+          reportHTML += `
+            <div class="report-section recommendations-section">
+              <h2>Recommendations</h2>
+              <div class="recommendations-content">
+                ${data.recommendations}
+              </div>
+            </div>
+          `;
+        }
+
+        // Receipt Section - Calculate receipt using shared function
+        const receiptCalc = calculateReceipt(job, data);
+        const lineItems = receiptCalc.lineItems;
+        const total = receiptCalc.total;
+        
+        reportHTML += `
+          <div class="report-section" style="page-break-before:always">
+            <h2>Receipt</h2>
+            <div style="margin-top:2rem">
+        `;
+
+        // Build receipt table
+        if (lineItems.length > 0) {
+          reportHTML += `
+            <table style="width:100%;border-collapse:collapse;margin-bottom:2rem">
+              <thead>
+                <tr style="border-bottom:2px solid #ddd">
+                  <th style="text-align:left;padding:1rem;font-weight:600;color:var(--navy)">Description</th>
+                  <th style="text-align:right;padding:1rem;font-weight:600;color:var(--navy)">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          lineItems.forEach(item => {
+            reportHTML += `
+              <tr style="border-bottom:1px solid #eee">
+                <td style="padding:1rem">${item.description}</td>
+                <td style="text-align:right;padding:1rem">$${item.amount.toFixed(2)}</td>
+              </tr>
+            `;
+          });
+
+          reportHTML += `
+              </tbody>
+              <tfoot>
+                <tr style="border-top:2px solid #ddd">
+                  <td style="padding:1rem;font-weight:700;font-size:1.1rem;color:var(--navy)">Total</td>
+                  <td style="text-align:right;padding:1rem;font-weight:700;font-size:1.1rem;color:var(--navy)">$${total.toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          `;
+        } else {
+          reportHTML += `
+            <p style="color:var(--gray);text-align:center;padding:2rem">No charges for this report.</p>
+          `;
+        }
+
+        reportHTML += `
+            </div>
+          </div>
+        `;
+
+          document.getElementById('reportContent').innerHTML = reportHTML;
+          
+          // Store receipt data for modal
+          window.receiptData = { job, data, lineItems, total };
+          
+          // Initialize map if coordinates exist
+          const mapId = report.id || 'map';
+          if (window.mapCoordinates && window.mapCoordinates[mapId]) {
+            setTimeout(() => {
+              initializeWellHeadMap(mapId, window.mapCoordinates[mapId].lat, window.mapCoordinates[mapId].lng);
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error loading report:', error);
+          document.getElementById('reportContent').innerHTML = `
+            <div class="report-section">
+              <p style="color:var(--gray);text-align:center">Error loading report: ${error.message}</p>
+            </div>
+          `;
+        }
+      }
+
+      // Function to show receipt modal
+      function showReceiptModal() {
+        if (!window.receiptData) {
+          alert('Receipt data not available. Please wait for the report to load.');
+          return;
+        }
+
+        const { lineItems, total } = window.receiptData;
+        const modalBody = document.getElementById('receiptModalBody');
+
+        let receiptHTML = '<h2>Receipt</h2>';
+
+        if (lineItems.length > 0) {
+          receiptHTML += `
+            <table class="receipt-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          lineItems.forEach(item => {
+            receiptHTML += `
+              <tr>
+                <td>${item.description}</td>
+                <td class="amount">$${item.amount.toFixed(2)}</td>
+              </tr>
+            `;
+          });
+
+          receiptHTML += `
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td class="amount">$${total.toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          `;
+        } else {
+          receiptHTML += `
+            <p style="color:var(--gray);text-align:center;padding:2rem">No charges for this report.</p>
+          `;
+        }
+
+        modalBody.innerHTML = receiptHTML;
+        document.getElementById('receiptModal').classList.add('active');
+      }
+
+      // Function to close receipt modal
+      function closeReceiptModal(event) {
+        if (!event || event.target.id === 'receiptModal' || event.target.classList.contains('receipt-modal-close')) {
+          document.getElementById('receiptModal').classList.remove('active');
+        }
+      }
+
+      // Function to initialize well head map
+      function initializeWellHeadMap(reportId, lat, lng) {
+        const mapContainer = document.getElementById(`wellHeadMap_${reportId}`);
+        if (!mapContainer) {
+          console.warn('Map container not found');
+          return;
+        }
+
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+          console.warn('Leaflet not loaded, map cannot be displayed');
+          mapContainer.innerHTML = '<p style="padding:2rem;text-align:center;color:#666">Map library not available</p>';
+          return;
+        }
+
+        try {
+          // Initialize map centered on coordinates
+          // Zoom level 20 for detailed close-up view (satellite view)
+          const map = L.map(mapContainer, {
+            center: [lat, lng],
+            zoom: 20,
+            zoomControl: true
+          });
+
+          // Add satellite imagery (Esri World Imagery)
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19
+          }).addTo(map);
+
+          // Add marker at well head location
+          const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+              className: 'well-head-marker',
+              html: '<div style="width:30px;height:30px;background-color:#dc3545;border:4px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+              iconSize: [30, 30],
+              iconAnchor: [15, 15]
+            })
+          }).addTo(map);
+
+          // Add popup with coordinates
+          marker.bindPopup(`Well Head Location<br>${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
+
+          // Store map reference
+          if (!window.wellHeadMaps) window.wellHeadMaps = {};
+          window.wellHeadMaps[reportId] = map;
+        } catch (error) {
+          console.error('Error initializing map:', error);
+          mapContainer.innerHTML = `<p style="padding:2rem;text-align:center;color:#c33">Error loading map: ${error.message}</p>`;
+        }
+      }
+
+      // Make functions globally accessible
+      window.showReceiptModal = showReceiptModal;
+      window.closeReceiptModal = closeReceiptModal;
+      window.initializeWellHeadMap = initializeWellHeadMap;
+      
+      loadReport();
+    }
+  </script>
+</body>
+</html>

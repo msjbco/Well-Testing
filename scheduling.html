@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Your Well Test | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <div class="hero-under-nav" style="background:linear-gradient(rgba(30,58,95,0.9),rgba(30,58,95,0.9)),url('images/hero.jpg') center/cover no-repeat;color:white;text-align:center;padding:6rem 0">
+    <h1 style="font-size:3.5rem;margin:0;color:white">Schedule Your Well Test</h1>
+    <p style="font-size:1.4rem;max-width:800px;margin:2rem auto 0;color:white">Book your appointment online — fast, easy, and convenient</p>
+  </div>
+
+  <section class="content" style="padding:6rem 0">
+    <div class="container">
+      <div style="max-width:1000px;margin:0 auto">
+        
+        <!-- Scheduling Form Section -->
+        <div id="schedulingForm" style="max-width:700px;margin:0 auto 3rem">
+          <div style="background:white;padding:3rem;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1)">
+            <h2 style="color:var(--navy);margin-bottom:2rem;text-align:center;font-size:2rem">Schedule Your Well Test</h2>
+            
+            <form id="wellTestForm" style="display:grid;gap:1.5rem">
+              <!-- Property Address -->
+              <div>
+                <label for="propertyAddress" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Property Address <span style="color:red">*</span>
+                </label>
+                <input type="text" 
+                       id="propertyAddress" 
+                       name="propertyAddress"
+                       required
+                       placeholder="Enter street address"
+                       style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+              </div>
+
+              <!-- ZIP and City -->
+              <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem">
+                <div>
+                  <label for="zip" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                    ZIP Code
+                  </label>
+                  <input type="text" 
+                         id="zip" 
+                         name="zip"
+                         placeholder="Enter ZIP"
+                         maxlength="5"
+                         onblur="lookupCityFromZip()"
+                         style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+                </div>
+                <div>
+                  <label for="city" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                    City
+                  </label>
+                  <input type="text" 
+                         id="city" 
+                         name="city"
+                         placeholder="Enter city (auto-filled from ZIP)"
+                         style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+                </div>
+              </div>
+
+              <!-- County -->
+              <div>
+                <label for="county" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  County <span style="color:red">*</span>
+                </label>
+                <select id="county" 
+                        name="county"
+                        required
+                        style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box;background:white">
+                  <option value="">Select a county</option>
+                  <option value="Adams">Adams</option>
+                  <option value="Alamosa">Alamosa</option>
+                  <option value="Arapahoe">Arapahoe</option>
+                  <option value="Archuleta">Archuleta</option>
+                  <option value="Baca">Baca</option>
+                  <option value="Bent">Bent</option>
+                  <option value="Boulder">Boulder</option>
+                  <option value="Broomfield">Broomfield</option>
+                  <option value="Chaffee">Chaffee</option>
+                  <option value="Cheyenne">Cheyenne</option>
+                  <option value="Clear Creek">Clear Creek</option>
+                  <option value="Conejos">Conejos</option>
+                  <option value="Costilla">Costilla</option>
+                  <option value="Crowley">Crowley</option>
+                  <option value="Custer">Custer</option>
+                  <option value="Delta">Delta</option>
+                  <option value="Denver">Denver</option>
+                  <option value="Dolores">Dolores</option>
+                  <option value="Douglas">Douglas</option>
+                  <option value="Eagle">Eagle</option>
+                  <option value="El Paso">El Paso</option>
+                  <option value="Elbert">Elbert</option>
+                  <option value="Fremont">Fremont</option>
+                  <option value="Garfield">Garfield</option>
+                  <option value="Gilpin">Gilpin</option>
+                  <option value="Grand">Grand</option>
+                  <option value="Gunnison">Gunnison</option>
+                  <option value="Hinsdale">Hinsdale</option>
+                  <option value="Huerfano">Huerfano</option>
+                  <option value="Jackson">Jackson</option>
+                  <option value="Jefferson">Jefferson</option>
+                  <option value="Kiowa">Kiowa</option>
+                  <option value="Kit Carson">Kit Carson</option>
+                  <option value="La Plata">La Plata</option>
+                  <option value="Lake">Lake</option>
+                  <option value="Larimer">Larimer</option>
+                  <option value="Las Animas">Las Animas</option>
+                  <option value="Lincoln">Lincoln</option>
+                  <option value="Logan">Logan</option>
+                  <option value="Mesa">Mesa</option>
+                  <option value="Mineral">Mineral</option>
+                  <option value="Moffat">Moffat</option>
+                  <option value="Montezuma">Montezuma</option>
+                  <option value="Montrose">Montrose</option>
+                  <option value="Morgan">Morgan</option>
+                  <option value="Otero">Otero</option>
+                  <option value="Ouray">Ouray</option>
+                  <option value="Park">Park</option>
+                  <option value="Phillips">Phillips</option>
+                  <option value="Pitkin">Pitkin</option>
+                  <option value="Prowers">Prowers</option>
+                  <option value="Pueblo">Pueblo</option>
+                  <option value="Rio Blanco">Rio Blanco</option>
+                  <option value="Rio Grande">Rio Grande</option>
+                  <option value="Routt">Routt</option>
+                  <option value="Saguache">Saguache</option>
+                  <option value="San Juan">San Juan</option>
+                  <option value="San Miguel">San Miguel</option>
+                  <option value="Sedgwick">Sedgwick</option>
+                  <option value="Summit">Summit</option>
+                  <option value="Teller">Teller</option>
+                  <option value="Washington">Washington</option>
+                  <option value="Weld">Weld</option>
+                  <option value="Yuma">Yuma</option>
+                </select>
+              </div>
+
+              <!-- Name and Role -->
+              <div>
+                <label for="name" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Name <span style="color:red">*</span>
+                </label>
+                <input type="text" 
+                       id="name" 
+                       name="name"
+                       required
+                       placeholder="Enter your full name"
+                       style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box;margin-bottom:1rem">
+                <label for="userRole" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Are you a: <span style="color:red">*</span>
+                </label>
+                <select id="userRole" 
+                        name="userRole"
+                        required
+                        onchange="toggleOtherRoleInput()"
+                        style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box;background:white">
+                  <option value="">Select one</option>
+                  <option value="buyer">Buyer</option>
+                  <option value="owner">Owner</option>
+                  <option value="inspector">Inspector</option>
+                  <option value="buyers-agent">Buyer's Agent</option>
+                  <option value="sellers-agent">Seller's Agent</option>
+                  <option value="other">Other</option>
+                </select>
+                <div id="otherRoleInput" style="display:none;margin-top:1rem">
+                  <label for="otherRoleText" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                    Please specify: <span style="color:red">*</span>
+                  </label>
+                  <input type="text" 
+                         id="otherRoleText" 
+                         name="otherRoleText"
+                         placeholder="Enter your role"
+                         style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+                </div>
+              </div>
+
+              <!-- Cistern/Underground Storage -->
+              <div>
+                <label style="display:flex;align-items:center;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  <span>Is there a cistern or underground storage? <span style="color:red">*</span></span>
+                </label>
+                <div style="display:flex;gap:2rem;margin-top:0.5rem">
+                  <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+                    <input type="radio" 
+                           name="hasCistern" 
+                           value="yes" 
+                           required
+                           id="cisternYes"
+                           onchange="handleCisternSelection('yes')"
+                           style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+                    Yes
+                  </label>
+                  <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+                    <input type="radio" 
+                           name="hasCistern" 
+                           value="no" 
+                           required
+                           id="cisternNo"
+                           onchange="handleCisternSelection('no')"
+                           style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+                    No
+                  </label>
+                </div>
+              </div>
+
+              <!-- Alternative Services (shown when cistern is Yes) -->
+              <div id="alternativeServices" style="display:none;margin-top:1.5rem;padding:1.5rem;background:#f4f0ea;border-radius:8px;border:2px solid var(--green)">
+                <h3 style="color:var(--navy);font-size:1.2rem;margin-bottom:1rem">Alternative Services Available</h3>
+                
+                <!-- Well Equipment Inspection -->
+                <div style="margin-bottom:1.5rem">
+                  <label style="display:flex;align-items:flex-start;cursor:pointer;font-size:1.1rem">
+                    <input type="checkbox" 
+                           name="equipmentInspection" 
+                           value="yes"
+                           id="equipmentInspection"
+                           style="width:20px;height:20px;margin-right:0.75rem;margin-top:0.2rem;cursor:pointer;flex-shrink:0">
+                    <div style="flex:1">
+                      <span style="color:var(--navy);font-weight:600">Well Equipment Inspection</span>
+                      <p style="font-size:0.95rem;color:var(--gray);margin:0.5rem 0 0 0;line-height:1.5">
+                        $150 base fee, plus potential trip distance charges
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                <!-- Water Quality Testing -->
+                <div>
+                  <label style="display:flex;align-items:flex-start;cursor:pointer;font-size:1.1rem;margin-bottom:0.75rem">
+                    <input type="checkbox" 
+                           name="waterQualityTesting" 
+                           value="yes"
+                           id="waterQualityTesting"
+                           onchange="toggleWaterQualityOptions()"
+                           style="width:20px;height:20px;margin-right:0.75rem;margin-top:0.2rem;cursor:pointer;flex-shrink:0">
+                    <div style="flex:1">
+                      <span style="color:var(--navy);font-weight:600">Water Quality Testing</span>
+                      <p style="font-size:0.95rem;color:var(--gray);margin:0.5rem 0 0 0;line-height:1.5">
+                        A la carte pricing, depending on chosen tests
+                      </p>
+                    </div>
+                  </label>
+                  
+                  <!-- Water Quality Test Options -->
+                  <div id="waterQualityOptions" style="display:none;margin-left:2rem;margin-top:1rem;padding:1rem;background:white;border-radius:6px;border:1px solid #ddd">
+                    <p style="font-size:0.9rem;color:var(--gray);margin-bottom:0.75rem;font-weight:600">Select tests (pricing varies):</p>
+                    <div style="display:grid;gap:0.75rem">
+                      <label style="display:flex;align-items:center;cursor:pointer;font-size:0.95rem">
+                        <input type="checkbox" name="waterTest" value="bacteria" style="width:18px;height:18px;margin-right:0.5rem;cursor:pointer">
+                        <span>Bacteria Testing</span>
+                      </label>
+                      <label style="display:flex;align-items:center;cursor:pointer;font-size:0.95rem">
+                        <input type="checkbox" name="waterTest" value="nitrate" style="width:18px;height:18px;margin-right:0.5rem;cursor:pointer">
+                        <span>Nitrate Testing</span>
+                      </label>
+                      <label style="display:flex;align-items:center;cursor:pointer;font-size:0.95rem">
+                        <input type="checkbox" name="waterTest" value="full-panel" style="width:18px;height:18px;margin-right:0.5rem;cursor:pointer">
+                        <span>Full Water Quality Panel</span>
+                      </label>
+                      <label style="display:flex;align-items:center;cursor:pointer;font-size:0.95rem">
+                        <input type="checkbox" name="waterTest" value="radon" style="width:18px;height:18px;margin-right:0.5rem;cursor:pointer">
+                        <span>Radon in Water</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Well Permit Number -->
+              <div>
+                <label for="wellPermitNumber" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Well Permit # (Optional)
+                </label>
+                <p style="font-size:0.95rem;color:var(--gray);margin-bottom:0.8rem">
+                  Don't know your permit number? 
+                  <a href="https://dwr.state.co.us/Tools/WellPermits" target="_blank" style="color:var(--green);font-weight:600;text-decoration:none">
+                    Search for it here →
+                  </a>
+                </p>
+                <div style="display:flex;gap:1rem;flex-wrap:wrap">
+                  <input type="text" 
+                         id="wellPermitNumber" 
+                         name="wellPermitNumber"
+                         placeholder="Enter well permit number"
+                         style="flex:1;min-width:200px;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+                  <a href="https://dwr.state.co.us/Tools/WellPermits" 
+                     target="_blank" 
+                     style="background:var(--green);color:white;padding:1rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center">
+                    Search Permit Database
+                  </a>
+                </div>
+              </div>
+
+              <!-- Access Question -->
+              <div>
+                <label style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Will someone be there to allow access? <span style="color:red">*</span>
+                </label>
+                <div style="display:flex;gap:2rem;margin-top:0.5rem">
+                  <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+                    <input type="radio" 
+                           name="willBePresent" 
+                           value="yes" 
+                           required
+                           id="willBePresentYes"
+                           onchange="handleAccessSelection('yes')"
+                           style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+                    Yes
+                  </label>
+                  <label style="display:flex;align-items:center;cursor:pointer;font-size:1.1rem">
+                    <input type="radio" 
+                           name="willBePresent" 
+                           value="no" 
+                           required
+                           id="willBePresentNo"
+                           onchange="handleAccessSelection('no')"
+                           style="width:20px;height:20px;margin-right:0.5rem;cursor:pointer">
+                    No
+                  </label>
+                </div>
+              </div>
+
+              <!-- Access Instructions (shown when No is selected) -->
+              <div id="accessInstructionsGroup" style="display:none">
+                <label for="accessInstructions" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                  Access Instructions <span style="color:red">*</span>
+                </label>
+                <textarea id="accessInstructions" 
+                          name="accessInstructions"
+                          placeholder="Enter access instructions (e.g., lockbox code, gate code, key location, etc.)"
+                          rows="3"
+                          style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box;resize:vertical"></textarea>
+              </div>
+
+              <!-- Next Button -->
+              <div style="margin-top:1rem">
+                <button type="submit" 
+                        style="width:100%;background:var(--green);color:white;padding:1.2rem 2rem;border:none;border-radius:8px;font-size:1.2rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.3s"
+                        onmouseover="this.style.background='#1f4d3a'"
+                        onmouseout="this.style.background='var(--green)'">
+                  Next → Continue to Calendar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Calendly inline widget (hidden initially) -->
+        <div id="calendlySection" style="display:none;min-height:700px;width:100%">
+          <div style="text-align:center;margin-bottom:2rem">
+            <h2 style="color:var(--navy);font-size:2rem;margin-bottom:1rem">Select Your Appointment Time</h2>
+            <p style="font-size:1.2rem;color:var(--gray)">
+              Choose a date and time that works best for you
+            </p>
+          </div>
+          <iframe src="https://calendly.com/your-username/well-testing" 
+                  width="100%" 
+                  height="700" 
+                  frameborder="0" 
+                  style="border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.15)">
+          </iframe>
+        </div>
+
+        <div style="background:#f4f0ea;padding:2.5rem;border-radius:12px;margin-top:3rem">
+          <h2 style="color:var(--navy);margin-bottom:1.5rem;text-align:center">What to Expect</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin-top:2rem">
+            <div>
+              <h3 style="color:var(--navy);font-size:1.3rem;margin-bottom:0.8rem">✓ Same/Next Day Available</h3>
+              <p style="font-size:1rem;line-height:1.6">
+                We offer flexible scheduling with same-day and next-day appointments when possible.
+              </p>
+            </div>
+            <div>
+              <h3 style="color:var(--navy);font-size:1.3rem;margin-bottom:0.8rem">✓ Fast Confirmation</h3>
+              <p style="font-size:1rem;line-height:1.6">
+                You'll receive an immediate confirmation email with appointment details and directions.
+              </p>
+            </div>
+            <div>
+              <h3 style="color:var(--navy);font-size:1.3rem;margin-bottom:0.8rem">✓ Reminder Notifications</h3>
+              <p style="font-size:1rem;line-height:1.6">
+                We'll send you a reminder 24 hours before your scheduled appointment.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:3rem">
+          <p style="font-size:1.1rem;color:var(--gray);margin-bottom:1rem">
+            Need to reschedule or have questions? 
+          </p>
+          <a href="index.html#contact" class="btn" style="background:var(--brown)">Contact Us →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:var(--navy);color:white;text-align:center;padding:3rem 0">
+    <div class="container">
+      <p>© 2025 Peak to Plains Well Testing • Call/text: (303) 555-1234</p>
+    </div>
+  </footer>
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script>w3.includeHTML();</script>
+  <script>
+    // Handle cistern selection
+    function handleCisternSelection(value) {
+      if (value === 'yes') {
+        // Show alternative services directly
+        document.getElementById('alternativeServices').style.display = 'block';
+      } else {
+        // Hide alternative services
+        document.getElementById('alternativeServices').style.display = 'none';
+        // Uncheck all alternative service options
+        document.getElementById('equipmentInspection').checked = false;
+        document.getElementById('waterQualityTesting').checked = false;
+        toggleWaterQualityOptions();
+      }
+    }
+
+    // Toggle water quality test options
+    function toggleWaterQualityOptions() {
+      const waterQualityCheckbox = document.getElementById('waterQualityTesting');
+      const optionsDiv = document.getElementById('waterQualityOptions');
+      
+      if (waterQualityCheckbox.checked) {
+        optionsDiv.style.display = 'block';
+      } else {
+        optionsDiv.style.display = 'none';
+        // Uncheck all water test options
+        const testCheckboxes = optionsDiv.querySelectorAll('input[type="checkbox"][name="waterTest"]');
+        testCheckboxes.forEach(cb => cb.checked = false);
+      }
+    }
+
+    // Handle access selection
+    function handleAccessSelection(value) {
+      const accessInstructionsGroup = document.getElementById('accessInstructionsGroup');
+      const accessInstructionsInput = document.getElementById('accessInstructions');
+      
+      if (value === 'no') {
+        accessInstructionsGroup.style.display = 'block';
+        accessInstructionsInput.required = true;
+      } else {
+        accessInstructionsGroup.style.display = 'none';
+        accessInstructionsInput.required = false;
+        accessInstructionsInput.value = '';
+      }
+    }
+
+    // Lookup city and county from ZIP code
+    async function lookupCityFromZip() {
+      const zipInput = document.getElementById('zip');
+      const cityInput = document.getElementById('city');
+      const countySelect = document.getElementById('county');
+      
+      if (!zipInput || !cityInput) return;
+      
+      const zip = zipInput.value.trim();
+      
+      // Only lookup if ZIP is 5 digits
+      if (zip.length === 5 && /^\d{5}$/.test(zip)) {
+        try {
+          // Use zippopotam.us API (free, no API key required)
+          const response = await fetch(`https://api.zippopotam.us/us/${zip}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.places && data.places.length > 0) {
+              // Use the first place (most common city for that ZIP)
+              const city = data.places[0]['place name'];
+              cityInput.value = city;
+              
+              // Try to get county from the place data or use geocoding
+              // Note: zippopotam.us doesn't provide county, so we'll use a geocoding service
+              if (countySelect) {
+                await lookupCountyFromAddress(city, zip);
+              }
+            }
+          } else {
+            // If API fails, just leave city empty
+            console.log('Could not lookup city for ZIP:', zip);
+          }
+        } catch (error) {
+          console.log('Error looking up city:', error);
+          // Silently fail - user can still enter city manually
+        }
+      }
+    }
+
+    // Lookup county from address using geocoding
+    async function lookupCountyFromAddress(city, zip) {
+      const addressInput = document.getElementById('propertyAddress');
+      const countySelect = document.getElementById('county');
+      
+      if (!addressInput || !countySelect) return;
+      
+      const address = addressInput.value.trim();
+      if (!address && !city) return;
+      
+      try {
+        // Build full address for geocoding
+        let fullAddress = address;
+        if (city) fullAddress += ', ' + city;
+        if (zip) fullAddress += ' ' + zip;
+        fullAddress += ', Colorado';
+        
+        // Use Nominatim (OpenStreetMap) geocoding service (free, no API key)
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1&addressdetails=1`, {
+          headers: {
+            'User-Agent': 'WellTestingApp/1.0'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length > 0 && data[0].address) {
+            // Try to get county from address object
+            const addressObj = data[0].address;
+            let countyName = addressObj.county || addressObj.municipality || null;
+            
+            // If county includes "County", remove it
+            if (countyName && countyName.includes('County')) {
+              countyName = countyName.replace(' County', '').trim();
+            }
+            
+            // Try to match county name with dropdown options
+            if (countyName) {
+              const options = countySelect.options;
+              for (let i = 0; i < options.length; i++) {
+                if (options[i].value && options[i].value.toLowerCase() === countyName.toLowerCase()) {
+                  countySelect.value = options[i].value;
+                  return;
+                }
+              }
+            }
+            
+            // Fallback: try to find county in display_name
+            const addressParts = data[0].display_name.split(',');
+            for (let part of addressParts) {
+              part = part.trim();
+              const options = countySelect.options;
+              for (let i = 0; i < options.length; i++) {
+                if (options[i].value && part.toLowerCase().includes(options[i].value.toLowerCase())) {
+                  countySelect.value = options[i].value;
+                  return;
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Error looking up county:', error);
+        // Silently fail - user can still select county manually
+      }
+    }
+
+
+    // Toggle "Other" role input field
+    function toggleOtherRoleInput() {
+      const roleSelect = document.getElementById('userRole');
+      const otherInput = document.getElementById('otherRoleInput');
+      const otherTextInput = document.getElementById('otherRoleText');
+      
+      if (roleSelect.value === 'other') {
+        otherInput.style.display = 'block';
+        otherTextInput.required = true;
+      } else {
+        otherInput.style.display = 'none';
+        otherTextInput.required = false;
+        otherTextInput.value = '';
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('wellTestForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Check if cistern is selected as "yes"
+      const hasCistern = document.querySelector('input[name="hasCistern"]:checked');
+      if (hasCistern && hasCistern.value === 'yes') {
+        // Check if at least one alternative service is selected
+        const equipmentInspection = document.getElementById('equipmentInspection').checked;
+        const waterQualityTesting = document.getElementById('waterQualityTesting').checked;
+        
+        if (!equipmentInspection && !waterQualityTesting) {
+          alert('Please select at least one alternative service (Well Equipment Inspection or Water Quality Testing) to continue.');
+          return;
+        }
+        
+        // If water quality testing is selected, check if at least one test is chosen
+        if (waterQualityTesting) {
+          const waterTests = document.querySelectorAll('input[name="waterTest"]:checked');
+          if (waterTests.length === 0) {
+            alert('Please select at least one water quality test option.');
+            return;
+          }
+        }
+      }
+      
+      // Validate "other" role if selected
+      const userRole = document.getElementById('userRole').value;
+      if (userRole === 'other') {
+        const otherRoleText = document.getElementById('otherRoleText').value.trim();
+        if (!otherRoleText) {
+          alert('Please specify your role.');
+          return;
+        }
+      }
+      
+      // Validate access instructions if "No" is selected for willBePresent
+      const willBePresent = document.querySelector('input[name="willBePresent"]:checked');
+      if (willBePresent && willBePresent.value === 'no') {
+        const accessInstructions = document.getElementById('accessInstructions').value.trim();
+        if (!accessInstructions) {
+          alert('Please provide access instructions since no one will be present.');
+          return;
+        }
+      }
+      
+      // Hide form and show Calendly
+      document.getElementById('schedulingForm').style.display = 'none';
+      document.getElementById('calendlySection').style.display = 'block';
+      
+      // Scroll to Calendly section
+      document.getElementById('calendlySection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  </script>
+</body>
+</html>
+

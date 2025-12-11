@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peak to Plains Well Testing | Colorado Residential Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <div class="hero-under-nav" style="background:linear-gradient(rgba(30,58,95,0.9),rgba(30,58,95,0.9)),url('images/hero.jpg') center/cover no-repeat;color:white;text-align:center;padding:6rem 0">
+    <h1 style="font-size:3.5rem;margin:0;color:white">Colorado's Most Trusted Residential Well Testing</h1>
+    <p style="font-size:1.4rem;max-width:800px;margin:2rem auto 0;color:white">Fast • Accurate • Lender-Approved</p>
+    </div>
+
+  <section class="trust">
+    <div class="container">
+      <div class="trust-item">✔ Certified & Insured</div>
+      <div class="trust-item">✔ Same/Next-Day Reports</div>
+      <div class="trust-item">✔ 10+ Years Colorado Experience</div>
+      <div class="trust-item">✔ 500+ Happy Clients</div>
+    </div>
+  </section>
+
+  <section class="why-us-section">
+    <div class="container">
+      <div class="why-us-button-wrapper">
+        <button class="why-us-button" onclick="openWhyUsModal()">
+          Why Us?
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Us Modal -->
+  <div id="whyUsModal" class="modal-overlay" onclick="closeWhyUsModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeWhyUsModal(event)">&times;</button>
+      <div class="why-us-modal-body">
+        <h2 class="why-us-title">We Don't Guess. We Prove It – the Colorado Way.</h2>
+        
+        <p class="why-us-intro">Most companies give you a 5-minute bucket test and call it a day.</p>
+        
+        <p class="why-us-text">We run a full 2-hour sustained-yield flow test – exactly what the State of Colorado Division of Water Resources recommends for an accurate, bankable well report. Two hours of hard data, interval readings every 15 minutes, trend analysis, and a final safe-yield number you can trust.</p>
+        
+        <h3 class="why-us-subtitle">We Only Do Wells. Nothing Else.</h3>
+        
+        <p class="why-us-text">We don't install septic systems, we don't fix sprinklers, and we don't sell water softeners. Wells and well water are literally all we do – every single day. That narrow focus means we've seen (and solved) every weird Colorado well problem you can imagine.</p>
+        
+        <h3 class="why-us-subtitle">We Look Inside Your Pipes – Before They Blow.</h3>
+        
+        <p class="why-us-text">Galvanized steel plumbing around pressure tanks is the #1 cause of sudden, expensive floods during real-estate inspections.</p>
+        
+        <p class="why-us-text">We carry professional ultrasonic thickness gauges (the same tools pipeline inspectors use) so we can tell you – to the thousandth of an inch – how much metal is left in those old pipes. No surprises, no emergency plumber calls the week after closing.</p>
+        
+        <p class="why-us-bottom-line"><strong>Bottom line:</strong></p>
+        
+        <p class="why-us-conclusion">You get the longest, most rigorous flow test in the state, performed by obsessive well-only specialists, using equipment nobody else brings to a residential inspection.</p>
+        
+        <p class="why-us-final">That's not marketing. That's just what we do every single time.</p>
+        
+        <p class="why-us-question">Ready for the real story on your well?</p>
+        
+        <div class="why-us-cta-buttons">
+          <a href="scheduling.html" class="why-us-cta-btn primary">Schedule Now</a>
+          <a href="#about" class="why-us-cta-btn secondary" onclick="closeWhyUsModal(event)">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="services" class="services">
+    <div class="container">
+      <h2>Our Services</h2>
+      <div class="grid">
+        <a href="flow-rate-testing.html" class="card">Flow Rate Testing</a>
+        <a href="water-quality-analysis.html" class="card">Water Quality Analysis</a>
+        <a href="bacteria-testing.html" class="card">Bacteria (Coliform/E.coli)</a>
+        <a href="fha-va-package.html" class="card">Full FHA/VA Package</a>
+        <a href="nitrate-testing.html" class="card">Nitrate + Nitrite</a>
+        <a href="radon-in-water.html" class="card">Radon in Water</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2>Transparent Pricing</h2>
+      <div class="grid">
+        <div class="price-card">
+          <h3>Basic Flow + Bacteria</h3>
+          <p class="price">$449</p>
+          <ul style="text-align:left;margin:1.5rem 0 0 1.8rem;line-height:1.9;font-size:1.1rem">
+            <li>2-hour flow rate test</li>
+            <li>Coliform & E.coli bacteria test</li>
+            <li>Digital report in 24–48 hrs</li>
+          </ul>
+        </div>
+        <div class="price-card popular">
+          <div class="popular-tag">Most Popular</div>
+          <h3>Complete Homebuyer Package</h3>
+          <p class="price">$625</p>
+          <ul style="text-align:left;margin:1.5rem 0 0 1.8rem;line-height:1.9;font-size:1.1rem">
+            <li>Everything in Basic</li>
+            <li>Full inorganic panel</li>
+            <li>Nitrate/Nitrite</li>
+            <li>Radon in water (if required)</li>
+          </ul>
+        </div>
+        <div class="price-card">
+          <h3>Custom Testing</h3>
+          <p class="price">From $250</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="container">
+      <h2>What Our Clients Say</h2>
+      <div class="slider">
+        <div class="slide"><p>“Fast, professional, and the report was in my inbox the next morning. Made closing seamless!”</p><strong>— Sarah M., Realtor, Boulder</strong></div>
+        <div class="slide"><p>“Best well tester we've ever used. Worth every penny for peace of mind.”</p><strong>— The Johnson Family, Evergreen</strong></div>
+        <div class="slide"><p>“On time, super friendly, explained everything. Highly recommend!”</p><strong>— Mark R., Golden</strong></div>
+        <div class="slide"><p>“They caught a potential pipe issue that would have cost us thousands. The ultrasonic testing was a game-changer!”</p><strong>— Jennifer K., Homebuyer, Fort Collins</strong></div>
+        <div class="slide"><p>“Most thorough well inspection we've had in 20 years of real estate. The 2-hour flow test is the real deal.”</p><strong>— Tom W., Realtor, Colorado Springs</strong></div>
+        <div class="slide"><p>“Came out same day when we were in a bind. Professional, thorough, and got our report done in time for closing.”</p><strong>— Lisa H., Parker</strong></div>
+        <div class="slide"><p>“Finally, someone who actually knows Colorado wells. They answered every question and made us feel confident about our purchase.”</p><strong>— David & Maria S., Castle Rock</strong></div>
+        <div class="slide"><p>“The detailed report saved us from buying a property with serious well issues. Worth every cent!”</p><strong>— Robert P., Littleton</strong></div>
+        <div class="slide"><p>“Extremely knowledgeable team. They explained the technical stuff in a way we could understand. Great experience!”</p><strong>— Amanda T., Broomfield</strong></div>
+        <div class="slide"><p>“Best inspection company we've worked with. They actually showed up on time and had all the right equipment.”</p><strong>— Mike D., Realtor, Denver</strong></div>
+        <div class="slide"><p>“Their attention to detail is incredible. They found issues other inspectors missed completely.”</p><strong>— Karen L., Morrison</strong></div>
+        <div class="slide"><p>“Professional from start to finish. The comprehensive testing gave us confidence in our well's performance.”</p><strong>— James & Nancy B., Longmont</strong></div>
+        <div class="slide"><p>“Quick response, excellent communication, and a report that satisfied our lender. Perfect!”</p><strong>— Chris M., Westminster</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <div class="container">
+      <h2>Colorado Born & Raised</h2>
+      <div class="about-grid">
+        <img src="images/about.jpg" alt="Well tester in Colorado mountains">
+        <div>
+          <p>We know Colorado water. From the high country to the eastern plains, we’ve tested hundreds of wells so families can buy and sell homes with total confidence.</p>
+          <p>Licensed, insured, and obsessed with accuracy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="container">
+      <h2>Book Your Well Test Today</h2>
+      <form>
+        <input type="text" placeholder="Name" required>
+        <input type="email" placeholder="Email" required>
+        <input type="tel" placeholder="Phone" required>
+        <input type="text" placeholder="Property Address">
+        <textarea placeholder="When do you need the test? Any special requests?"></textarea>
+        <button type="submit" class="btn">Send Request →</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 Peak to Plains Well Testing • Serving all of Colorado</p>
+      <p>Call or text anytime: <strong>(303) 555-1234</strong></p>
+      <p style="margin-top:1rem;"><a href="/find-my-report" style="color:var(--green); text-decoration:none; font-weight:500;">Lost your report? Find it here →</a></p>
+    </div>
+  </footer>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script>w3.includeHTML();</script>
+  <script src="script.js"></script>
+</body>
+</html>

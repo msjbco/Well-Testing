@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobs Map | Peak to Plains Well Testing</title>
+  <!-- This page uses OpenStreetMap (Leaflet), NOT Google Maps -->
+  <script>
+    // Prevent any Google Maps from loading
+    if (typeof google !== 'undefined' && google.maps) {
+      console.warn('Google Maps detected but not used - this page uses OpenStreetMap');
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Leaflet CSS (free, no API key needed) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    .admin-header {
+      background: var(--navy);
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .admin-header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-header h1 {
+      color: white;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .map-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .map-filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.6rem 1.2rem;
+      border: 2px solid var(--navy);
+      background: white;
+      color: var(--navy);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      background: var(--navy);
+      color: white;
+    }
+    .filter-btn.active {
+      background: var(--navy);
+      color: white;
+    }
+    .map-wrapper {
+      width: 100%;
+      height: 600px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #f0f0f0;
+    }
+    /* Ensure map container is visible */
+    #map.leaflet-container {
+      background: #f0f0f0;
+    }
+    .map-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      z-index: 1000;
+      text-align: center;
+    }
+    .map-error {
+      background: #fee;
+      color: #c33;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .back-to-dashboard {
+      background: var(--navy);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .back-to-dashboard:hover {
+      background: var(--green);
+    }
+    .map-legend {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .legend-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .legend-icon.future {
+      background: #28a745;
+    }
+    .legend-icon.past {
+      background: #dc3545;
+    }
+    /* Leaflet popup styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      padding: 1rem;
+      min-width: 250px;
+    }
+    .leaflet-popup-content h3 {
+      margin: 0 0 0.5rem 0;
+      color: var(--navy);
+      font-size: 1.1rem;
+    }
+    .leaflet-popup-content p {
+      margin: 0.25rem 0;
+      font-size: 0.9rem;
+    }
+    .leaflet-popup-content a {
+      display: inline-block;
+      margin-top: 0.5rem;
+      background: var(--green);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .leaflet-popup-content a:hover {
+      background: #1f4d3a;
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <!-- Check authentication -->
+  <script>
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = 'admin-login.html';
+    }
+  </script>
+
+  <div class="admin-header">
+    <div class="container">
+      <h1>Jobs Map</h1>
+      <a href="admin-dashboard.html" class="back-to-dashboard">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="map-container">
+    <div class="map-header">
+      <h2 style="color:var(--navy);margin:0">Job Locations</h2>
+      <div class="map-filters">
+        <button class="filter-btn active" onclick="filterJobs('all')">All Jobs</button>
+        <button class="filter-btn" onclick="filterJobs('future')">Future Jobs</button>
+        <button class="filter-btn" onclick="filterJobs('past')">Past Jobs</button>
+      </div>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-icon future">✓</div>
+        <span>Future Jobs</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon past">✓</div>
+        <span>Past/Closed Jobs</span>
+      </div>
+    </div>
+
+    <div id="mapError" class="map-error" style="display:none"></div>
+    <div id="geocodingWarnings" style="display:none;margin-bottom:1rem"></div>
+
+    <div class="map-wrapper">
+      <div id="map"></div>
+      <div id="mapLoading" class="map-loading">
+        <div>Loading map and job locations...</div>
+        <div style="font-size:0.85rem;color:#666;margin-top:0.5rem">Using OpenStreetMap (free mapping service)</div>
+      </div>
+      <!-- Clear any Google Maps iframe that might be cached -->
+      <script>
+        // Remove any Google Maps iframes that might exist
+        window.addEventListener('DOMContentLoaded', function() {
+          const iframes = document.querySelectorAll('iframe[src*="google"], iframe[src*="maps.googleapis"]');
+          iframes.forEach(iframe => iframe.remove());
+        });
+      </script>
+    </div>
+  </div>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script src="api.js"></script>
+  <script>w3.includeHTML();</script>
+  
+  <!-- Leaflet JavaScript (free, no API key needed - using OpenStreetMap, NOT Google Maps) -->
+  <script>
+    // Prevent any Google Maps from loading
+    window.google = window.google || {};
+    window.google.maps = null;
+    
+    // Load Leaflet
+    const leafletScript = document.createElement('script');
+    leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    leafletScript.onload = function() {
+      console.log('Leaflet loaded successfully');
+      initializeMapApp();
+    };
+    leafletScript.onerror = function() {
+      console.error('Failed to load Leaflet');
+      showMapError('Failed to load map library. Please check your internet connection.');
+    };
+    document.head.appendChild(leafletScript);
+    
+    function showMapError(message) {
+      const errorDiv = document.getElementById('mapError');
+      if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      }
+      const loading = document.getElementById('mapLoading');
+      if (loading) loading.style.display = 'none';
+    }
+    
+    function initializeMapApp() {
+      let map;
+      let markers = [];
+      let allJobs = [];
+      let geocodedJobs = [];
+      let currentFilter = 'all';
+
+      // Wait for Leaflet to load before initializing
+      function waitForLeaflet(callback) {
+        if (typeof L !== 'undefined') {
+          callback();
+        } else {
+          setTimeout(() => waitForLeaflet(callback), 100);
+        }
+      }
+
+    async function initMap() {
+      try {
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+          showError('Map library failed to load. Please refresh the page.');
+          document.getElementById('mapLoading').style.display = 'none';
+          return;
+        }
+
+        // Initialize map centered on Colorado
+        map = L.map('map').setView([39.7392, -104.9903], 7); // Colorado center
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(map);
+
+        // Load jobs and geocode addresses
+        await loadAndGeocodeJobs();
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        showError('Failed to initialize map: ' + error.message);
+        document.getElementById('mapLoading').style.display = 'none';
+      }
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('mapError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    async function loadJobs() {
+      try {
+        allJobs = await window.jobsAPI.getAll();
+        // Filter out archived jobs
+        allJobs = allJobs.filter(job => job.archived !== true);
+        return allJobs;
+      } catch (error) {
+        console.error('Error loading jobs:', error);
+        showError('Failed to load jobs: ' + error.message);
+        return [];
+      }
+    }
+
+    async function geocodeAddress(job) {
+      if (!job.propertyAddress) {
+        console.warn('Job missing address:', job.id, job.propertyAddress);
+        return null;
+      }
+
+      // Try multiple address formats for better geocoding success
+      const addressAttempts = [];
+      
+      // Full address with all components
+      const fullAddress = [
+        job.propertyAddress,
+        job.city,
+        job.zip ? job.zip : '',
+        'Colorado'
+      ].filter(Boolean).join(', ');
+      addressAttempts.push(fullAddress);
+      
+      // If city/zip exist, try with just address + city + CO
+      if (job.city) {
+        addressAttempts.push(`${job.propertyAddress}, ${job.city}, Colorado`);
+      }
+      
+      // Try with just address + Colorado
+      addressAttempts.push(`${job.propertyAddress}, Colorado`);
+      
+      // Try with address + zip + CO if zip exists
+      if (job.zip) {
+        addressAttempts.push(`${job.propertyAddress}, ${job.zip}, Colorado`);
+      }
+
+      for (const addressToTry of addressAttempts) {
+        try {
+          // Use Nominatim (OpenStreetMap) geocoding service (free, no API key)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressToTry)}&limit=1`,
+            {
+              headers: {
+                'User-Agent': 'WellTestingApp/1.0' // Required by Nominatim
+              }
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.length > 0) {
+              console.log('Successfully geocoded:', addressToTry, '→', data[0].display_name);
+              return {
+                job: job,
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon),
+                formattedAddress: data[0].display_name
+              };
+            }
+          }
+        } catch (error) {
+          console.warn('Geocoding error for:', addressToTry, error);
+        }
+      }
+      
+      // If all attempts failed, log it
+      console.warn('Failed to geocode address after all attempts:', fullAddress, 'Job ID:', job.id);
+      return null;
+    }
+
+    async function loadAndGeocodeJobs() {
+      const jobs = await loadJobs();
+      
+      if (jobs.length === 0) {
+        document.getElementById('mapLoading').style.display = 'none';
+        showError('No jobs found.');
+        return;
+      }
+
+      // Show loading progress
+      document.getElementById('mapLoading').innerHTML = `
+        <div>Geocoding ${jobs.length} job addresses...</div>
+        <div style="font-size:0.9rem;color:#666;margin-top:0.5rem">This may take a moment</div>
+      `;
+
+      // Geocode all jobs with delay to respect rate limits
+      geocodedJobs = [];
+      const failedJobs = [];
+      
+      for (let i = 0; i < jobs.length; i++) {
+        const job = jobs[i];
+        const result = await geocodeAddress(job);
+        if (result) {
+          geocodedJobs.push(result);
+        } else {
+          failedJobs.push(job);
+        }
+        // Small delay to respect Nominatim rate limits (1 request per second)
+        if (i < jobs.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1100));
+        }
+      }
+
+      // Log failed geocodings and show them on the page
+      if (failedJobs.length > 0) {
+        const failedJobsInfo = failedJobs.map(j => ({
+          id: j.id,
+          address: j.propertyAddress || 'No address',
+          city: j.city || 'No city',
+          zip: j.zip || 'No zip'
+        }));
+        
+        console.warn('Jobs that failed to geocode:', failedJobsInfo);
+        
+        // Show warning with details on the page
+        if (geocodedJobs.length > 0) {
+          const warningsDiv = document.getElementById('geocodingWarnings');
+          warningsDiv.style.display = 'block';
+          warningsDiv.innerHTML = `
+            <div style="background:#fff3cd;color:#856404;padding:1rem;border-radius:8px;margin-bottom:1rem">
+              <strong>⚠️ ${geocodedJobs.length} job(s) mapped successfully. ${failedJobs.length} job(s) could not be geocoded:</strong>
+              <ul style="margin:0.5rem 0 0 0;padding-left:1.5rem">
+                ${failedJobsInfo.map(j => `
+                  <li style="margin:0.25rem 0">
+                    <strong>${j.address}</strong>
+                    ${j.city !== 'No city' ? ', ' + j.city : ''}
+                    ${j.zip !== 'No zip' ? ' ' + j.zip : ''}
+                    <br>
+                    <span style="font-size:0.85rem;color:#666">Job ID: ${j.id}</span>
+                  </li>
+                `).join('')}
+              </ul>
+              <p style="margin:0.5rem 0 0 0;font-size:0.9rem">
+                <strong>Tip:</strong> Make sure addresses include a house number, city, and ZIP code for best results. 
+                You can edit addresses using the ✏️ icon on the dashboard.
+              </p>
+            </div>
+          `;
+        }
+      } else {
+        document.getElementById('geocodingWarnings').style.display = 'none';
+      }
+
+      if (geocodedJobs.length === 0) {
+        document.getElementById('mapLoading').style.display = 'none';
+        showError('Could not geocode any job addresses. Please check that jobs have valid addresses. Check browser console (F12) for details.');
+        return;
+      }
+
+      document.getElementById('mapLoading').style.display = 'none';
+      updateMarkers();
+      
+      // Fit map to show all markers
+      fitMapToMarkers();
+    }
+
+    function isFutureJob(job) {
+      if (!job.scheduledDate) return false;
+      const jobDate = new Date(job.scheduledDate);
+      const now = new Date();
+      return jobDate > now;
+    }
+
+    function getFilteredJobs() {
+      if (currentFilter === 'all') {
+        return geocodedJobs;
+      } else if (currentFilter === 'future') {
+        return geocodedJobs.filter(item => isFutureJob(item.job));
+      } else if (currentFilter === 'past') {
+        return geocodedJobs.filter(item => !isFutureJob(item.job));
+      }
+      return geocodedJobs;
+    }
+
+    function updateMarkers() {
+      // Clear existing markers
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+
+      const filteredJobs = getFilteredJobs();
+
+      if (filteredJobs.length === 0) {
+        return;
+      }
+
+      filteredJobs.forEach(item => {
+        const job = item.job;
+        const isFuture = isFutureJob(job);
+        
+        // Create custom icon
+        const iconColor = isFuture ? '#28a745' : '#dc3545';
+        const customIcon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div style="
+            width: 20px;
+            height: 20px;
+            background-color: ${iconColor};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          "></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        // Create marker
+        const marker = L.marker([item.lat, item.lng], { icon: customIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div>
+              <h3>${job.propertyAddress || 'No address'}
+                ${job.city ? ', ' + job.city : ''}
+                ${job.zip ? ' ' + job.zip : ''}
+              </h3>
+              <p><strong>Client:</strong> ${job.name || 'N/A'}</p>
+              <p><strong>Scheduled:</strong> ${job.scheduledDate ? new Date(job.scheduledDate).toLocaleString() : 'Not set'}</p>
+              <p><strong>Status:</strong> ${(job.status || 'pending').charAt(0).toUpperCase() + (job.status || 'pending').slice(1)}</p>
+              <a href="admin-job-detail.html?jobId=${job.id}">View Job Details →</a>
+            </div>
+          `);
+
+        // Make marker clickable to go to job details
+        marker.on('click', () => {
+          setTimeout(() => {
+            window.location.href = `admin-job-detail.html?jobId=${job.id}`;
+          }, 100);
+        });
+
+        markers.push(marker);
+      });
+
+      // Fit map to show all visible markers
+      fitMapToMarkers();
+    }
+
+    function fitMapToMarkers() {
+      if (markers.length === 0) return;
+
+      const group = new L.featureGroup(markers);
+      map.fitBounds(group.getBounds().pad(0.1));
+    }
+
+    function filterJobs(filter) {
+      currentFilter = filter;
+      
+      // Update active button
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Update markers
+      updateMarkers();
+    }
+
+      // Make filterJobs globally accessible
+      window.filterJobs = filterJobs;
+
+      // Initialize map when page loads - wait for Leaflet to be available
+      waitForLeaflet(() => {
+        initMap();
+      });
+
+      // Fallback: if Leaflet doesn't load after 5 seconds, show error
+      setTimeout(() => {
+        if (typeof L === 'undefined') {
+          showError('Map library failed to load. Please check your internet connection and refresh the page.');
+          const loading = document.getElementById('mapLoading');
+          if (loading) loading.style.display = 'none';
+        }
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

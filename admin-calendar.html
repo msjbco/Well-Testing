@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-header {
+      background: var(--navy);
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    .admin-header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .admin-header h1 {
+      color: white;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    .admin-header .logout-btn {
+      background: var(--brown);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .calendar-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .calendar-nav button {
+      background: var(--navy);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .calendar-nav button:hover {
+      background: var(--green);
+    }
+    .calendar-nav button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .calendar-month-year {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--navy);
+      min-width: 250px;
+      text-align: center;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #ddd;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .calendar-day-header {
+      background: var(--navy);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .calendar-day {
+      background: white;
+      min-height: 120px;
+      padding: 0.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .calendar-add-job-btn {
+      position: absolute;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      color: var(--green);
+      border: none;
+      font-size: 0.9rem;
+      font-weight: bold;
+      line-height: 1;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.2s, transform 0.2s;
+      z-index: 5;
+      background: none;
+      padding: 0;
+    }
+    .calendar-add-job-btn:hover {
+      color: #1f4d3a;
+      transform: scale(1.2);
+    }
+    .calendar-day.other-month .calendar-add-job-btn {
+      color: #bbb;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    .calendar-day.other-month .calendar-add-job-btn:hover {
+      color: #bbb;
+      transform: none;
+    }
+    .calendar-day:hover {
+      background: #f5f5f5;
+    }
+    .calendar-day.other-month {
+      background: #f9f9f9;
+      color: #bbb;
+    }
+    .calendar-day.today {
+      background: #fff8e1;
+      border: 2px solid var(--green);
+    }
+    .calendar-day-number {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: var(--navy);
+    }
+    .calendar-day.other-month .calendar-day-number {
+      color: #bbb;
+    }
+    .calendar-day.today .calendar-day-number {
+      color: var(--green);
+      font-weight: 700;
+    }
+    .calendar-jobs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .calendar-job {
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .calendar-job:hover {
+      transform: translateX(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 10;
+      position: relative;
+    }
+    .calendar-job.pending {
+      background: #fff3cd;
+      color: #856404;
+      border-left: 3px solid #ffc107;
+    }
+    .calendar-job.awaiting-payment {
+      background: #ffeaa7;
+      color: #6c5ce7;
+      border-left: 3px solid #fdcb6e;
+    }
+    .calendar-job.complete {
+      background: #d4edda;
+      color: #155724;
+      border-left: 3px solid #28a745;
+    }
+    .calendar-job.completed {
+      background: #d4edda;
+      color: #155724;
+      border-left: 3px solid #28a745;
+    }
+    .calendar-legend {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border-left: 3px solid;
+    }
+    .legend-color.pending {
+      background: #fff3cd;
+      border-color: #ffc107;
+    }
+    .legend-color.awaiting-payment {
+      background: #ffeaa7;
+      border-color: #fdcb6e;
+    }
+    .legend-color.complete {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+    .job-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    .job-modal.active {
+      display: flex;
+    }
+    .job-modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .job-modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #ddd;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #666;
+    }
+    .job-modal-close:hover {
+      background: #bbb;
+    }
+    .job-modal-header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #eee;
+    }
+    .job-modal-title {
+      font-size: 1.5rem;
+      color: var(--navy);
+      margin: 0 0 0.5rem 0;
+    }
+    .job-modal-info {
+      display: grid;
+      gap: 1rem;
+    }
+    .job-modal-info-item {
+      display: flex;
+      gap: 1rem;
+    }
+    .job-modal-info-label {
+      font-weight: 600;
+      color: var(--gray);
+      min-width: 140px;
+    }
+    .job-modal-info-value {
+      color: var(--navy);
+      flex: 1;
+    }
+    .job-modal-actions {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #eee;
+      display: flex;
+      gap: 1rem;
+    }
+    .back-to-dashboard {
+      background: var(--navy);
+      color: white;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .back-to-dashboard:hover {
+      background: var(--green);
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <!-- Check authentication -->
+  <script>
+    if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+      window.location.href = 'admin-login.html';
+    }
+  </script>
+
+  <div class="admin-header">
+    <div class="container">
+      <h1>Job Calendar</h1>
+      <a href="admin-dashboard.html" class="back-to-dashboard">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="calendar-container">
+    <div class="calendar-header">
+      <div class="calendar-nav">
+        <button onclick="previousMonth()">← Previous</button>
+        <div class="calendar-month-year" id="monthYear"></div>
+        <button onclick="nextMonth()">Next →</button>
+        <button onclick="goToToday()" style="background:var(--green)">Today</button>
+      </div>
+    </div>
+
+    <div class="calendar-legend">
+      <div class="legend-item">
+        <div class="legend-color pending"></div>
+        <span>Pending Jobs</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color awaiting-payment"></div>
+        <span>Awaiting Payment</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color complete"></div>
+        <span>Complete / Confirmed</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color pending"></div>
+        <span>Class Request (Pending)</span>
+      </div>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid">
+      <!-- Calendar will be generated here -->
+    </div>
+  </div>
+
+  <!-- Job Detail Modal -->
+  <div class="job-modal" id="jobModal" onclick="closeModal(event)">
+    <div class="job-modal-content" onclick="event.stopPropagation()">
+      <button class="job-modal-close" onclick="closeModal()">&times;</button>
+      <div id="jobModalBody">
+        <!-- Job details will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script src="api.js"></script>
+  <script>w3.includeHTML();</script>
+  <script>
+    let currentDate = new Date();
+    let allJobs = [];
+    let allClassRequests = [];
+    let reportsMap = {};
+
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayAbbr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+
+    async function loadJobs() {
+      try {
+        allJobs = await window.jobsAPI.getAll();
+        
+        // Load class requests
+        try {
+          allClassRequests = await window.classRequestsAPI.getAll();
+          console.log('Loaded class requests:', allClassRequests);
+          console.log('Number of class requests loaded:', allClassRequests.length);
+          
+          // Also check localStorage directly as a fallback
+          if (typeof localStorage !== 'undefined') {
+            const directCheck = JSON.parse(localStorage.getItem('classRequests') || '[]');
+            console.log('Direct localStorage check:', directCheck);
+            if (directCheck.length > 0 && allClassRequests.length === 0) {
+              console.warn('API returned empty but localStorage has data - using localStorage');
+              allClassRequests = directCheck;
+            }
+          }
+        } catch (error) {
+          console.warn('Could not load class requests:', error);
+          // Try localStorage as fallback
+          if (typeof localStorage !== 'undefined') {
+            try {
+              allClassRequests = JSON.parse(localStorage.getItem('classRequests') || '[]');
+              console.log('Loaded from localStorage fallback:', allClassRequests);
+            } catch (e) {
+              console.error('Failed to load from localStorage:', e);
+              allClassRequests = [];
+            }
+          } else {
+            allClassRequests = [];
+          }
+        }
+        
+        // Load reports to check which jobs have reports
+        try {
+          const reports = await window.reportsAPI.getAll();
+          reportsMap = {};
+          reports.forEach(report => {
+            if (report.jobId) {
+              reportsMap[report.jobId] = report;
+            }
+          });
+        } catch (error) {
+          console.warn('Could not load reports:', error);
+        }
+        
+        renderCalendar();
+      } catch (error) {
+        console.error('Error loading jobs:', error);
+        alert('Failed to load jobs: ' + error.message);
+      }
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      console.log('Rendering calendar for:', monthNames[month], year);
+      console.log('Total class requests loaded:', allClassRequests.length);
+      allClassRequests.forEach(cr => {
+        console.log('Class request:', cr.id, 'Date:', cr.preferredDate, 'Confirmed:', cr.confirmed);
+      });
+      
+      // Update month/year display
+      document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+      
+      // Get first day of month and number of days
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startingDayOfWeek = firstDay.getDay();
+      
+      // Create calendar grid
+      let calendarHTML = '';
+      
+      // Day headers
+      dayAbbr.forEach(day => {
+        calendarHTML += `<div class="calendar-day-header">${day}</div>`;
+      });
+      
+      // Empty cells for days before month starts
+      for (let i = 0; i < startingDayOfWeek; i++) {
+        const prevMonthDate = new Date(year, month, -i);
+        calendarHTML += createDayCell(prevMonthDate.getDate(), prevMonthDate, true);
+      }
+      
+      // Days of current month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        calendarHTML += createDayCell(day, date, false);
+      }
+      
+      // Empty cells for days after month ends
+      const totalCells = startingDayOfWeek + daysInMonth;
+      const remainingCells = 42 - totalCells; // 6 rows * 7 days = 42 cells
+      for (let day = 1; day <= remainingCells; day++) {
+        const nextMonthDate = new Date(year, month + 1, day);
+        calendarHTML += createDayCell(day, nextMonthDate, true);
+      }
+      
+      document.getElementById('calendarGrid').innerHTML = calendarHTML;
+    }
+
+    function createDayCell(day, date, isOtherMonth) {
+      const today = new Date();
+      const isToday = !isOtherMonth && 
+                     date.getDate() === today.getDate() &&
+                     date.getMonth() === today.getMonth() &&
+                     date.getFullYear() === today.getFullYear();
+      
+      // Find jobs for this date (excluding archived jobs)
+      const dateStr = date.toISOString().split('T')[0];
+      const jobsForDate = allJobs.filter(job => {
+        if (!job.scheduledDate || job.archived === true) return false;
+        const jobDate = new Date(job.scheduledDate);
+        const jobDateStr = jobDate.toISOString().split('T')[0];
+        return jobDateStr === dateStr;
+      });
+      
+      // Find class requests for this date
+      const classRequestsForDate = allClassRequests.filter(cr => {
+        if (!cr.preferredDate) {
+          console.log('Class request missing preferredDate:', cr);
+          return false;
+        }
+        // Handle date strings that might already be in YYYY-MM-DD format
+        let crDateStr;
+        if (cr.preferredDate.includes('T')) {
+          // Has time component, parse as date
+          const crDate = new Date(cr.preferredDate);
+          crDateStr = crDate.toISOString().split('T')[0];
+        } else {
+          // Already in YYYY-MM-DD format (from HTML date input)
+          crDateStr = cr.preferredDate.split('T')[0];
+        }
+        const matches = crDateStr === dateStr;
+        if (matches) {
+          console.log('Class request matches date:', cr, 'Date:', dateStr, 'CR Date:', crDateStr);
+        }
+        return matches;
+      });
+      
+      let dayClass = 'calendar-day';
+      if (isOtherMonth) dayClass += ' other-month';
+      if (isToday) dayClass += ' today';
+      
+      let jobsHTML = '';
+      const allItemsForDate = [];
+      
+      // Add jobs
+      jobsForDate.forEach(job => {
+        allItemsForDate.push({ type: 'job', data: job });
+      });
+      
+      // Add class requests
+      classRequestsForDate.forEach(cr => {
+        allItemsForDate.push({ type: 'classRequest', data: cr });
+      });
+      
+      if (allItemsForDate.length > 0) {
+        jobsHTML = '<div class="calendar-jobs">';
+        allItemsForDate.forEach(item => {
+          if (item.type === 'job') {
+            const job = item.data;
+            const status = (job.status || 'pending').toLowerCase();
+            const statusClass = status === 'completed' ? 'complete' : status;
+            const jobTime = job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+            const jobCity = job.city || 'No City';
+            jobsHTML += `<div class="calendar-job ${statusClass}" onclick="event.stopPropagation();showJobDetails('${job.id}')" title="${job.propertyAddress || 'No address'} - ${jobTime}">
+              ${jobTime ? jobTime + ' - ' : ''}${jobCity}
+            </div>`;
+          } else if (item.type === 'classRequest') {
+            const cr = item.data;
+            const title = cr.confirmed ? 'Class' : 'Class Request';
+            const statusClass = cr.confirmed ? 'complete' : 'pending';
+            const city = cr.companyCity || '';
+            const displayText = city ? `${title} - ${city}` : title;
+            jobsHTML += `<div class="calendar-job ${statusClass}" onclick="event.stopPropagation();showClassRequestDetails('${cr.id}')" title="${title}${city ? ' - ' + city : ''}">
+              ${displayText}
+            </div>`;
+          }
+        });
+        jobsHTML += '</div>';
+      }
+      
+      // Format date for URL parameter (YYYY-MM-DD)
+      const dateForUrl = date.toISOString().split('T')[0];
+      // Only show add button for current month days
+      const addJobButton = !isOtherMonth 
+        ? `<a href="admin-add-job.html?date=${dateForUrl}" class="calendar-add-job-btn" onclick="event.stopPropagation()" title="Add Job">+</a>`
+        : '';
+      
+      return `
+        <div class="${dayClass}" onclick="selectDate('${date.toISOString()}')">
+          <div class="calendar-day-number">${day}</div>
+          ${jobsHTML}
+          ${addJobButton}
+        </div>
+      `;
+    }
+
+    function previousMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      loadJobs(); // Reload data when navigating months
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      loadJobs(); // Reload data when navigating months
+    }
+
+    function goToToday() {
+      currentDate = new Date();
+      loadJobs(); // Reload data when going to today
+    }
+
+    function selectDate(dateISO) {
+      const date = new Date(dateISO);
+      const dateStr = date.toISOString().split('T')[0];
+      const jobsForDate = allJobs.filter(job => {
+        if (!job.scheduledDate) return false;
+        const jobDate = new Date(job.scheduledDate);
+        const jobDateStr = jobDate.toISOString().split('T')[0];
+        return jobDateStr === dateStr;
+      });
+      
+      if (jobsForDate.length === 0) {
+        // Show message that there are no jobs on this date
+        return;
+      }
+      
+      // If multiple jobs, show first one (or we could show a list)
+      if (jobsForDate.length > 0) {
+        showJobDetails(jobsForDate[0].id);
+      }
+    }
+
+    async function showJobDetails(jobId) {
+      const job = allJobs.find(j => j.id === jobId);
+      if (!job) {
+        alert('Job not found');
+        return;
+      }
+      
+      const hasReport = reportsMap[jobId] !== undefined;
+      const report = reportsMap[jobId];
+      
+      let status = (job.status || 'pending').toLowerCase();
+      if (status === 'completed') status = 'complete';
+      const statusText = status.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+      
+      const scheduledDate = job.scheduledDate ? 
+        new Date(job.scheduledDate).toLocaleString('en-US', { 
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true 
+        }) : 'Not set';
+      
+      const modalBody = document.getElementById('jobModalBody');
+      modalBody.innerHTML = `
+        <div class="job-modal-header">
+          <h2 class="job-modal-title">${job.propertyAddress || 'No Address'}${job.city ? ', ' + job.city : ''}${job.zip ? ' ' + job.zip : ''}</h2>
+          <div style="color:var(--gray);font-size:0.9rem">Job ID: ${jobId}</div>
+        </div>
+        <div class="job-modal-info">
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Client Name:</div>
+            <div class="job-modal-info-value">${job.name || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">County:</div>
+            <div class="job-modal-info-value">${job.county || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Role:</div>
+            <div class="job-modal-info-value">${job.userRole || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Well Permit #:</div>
+            <div class="job-modal-info-value">${job.wellPermitNumber || 'Not provided'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Status:</div>
+            <div class="job-modal-info-value">
+              <span class="status-badge status-${status}" style="padding:0.4rem 1rem;border-radius:20px;font-size:0.85rem;font-weight:600">${statusText}</span>
+            </div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Scheduled:</div>
+            <div class="job-modal-info-value">${scheduledDate}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Will Be Present:</div>
+            <div class="job-modal-info-value">${job.willBePresent === 'yes' ? 'Yes' : job.willBePresent === 'no' ? 'No' : 'Not specified'}</div>
+          </div>
+          ${job.willBePresent === 'no' && job.accessInstructions 
+            ? `<div class="job-modal-info-item">
+                <div class="job-modal-info-label">Access Instructions:</div>
+                <div class="job-modal-info-value" style="white-space:pre-wrap;word-break:break-word">${job.accessInstructions}</div>
+              </div>`
+            : ''
+          }
+          ${job.notes 
+            ? `<div class="job-modal-info-item">
+                <div class="job-modal-info-label">Notes:</div>
+                <div class="job-modal-info-value" style="white-space:pre-wrap;word-break:break-word">${job.notes}</div>
+              </div>`
+            : ''
+          }
+        </div>
+        <div class="job-modal-actions">
+          <a href="admin-job-detail.html?jobId=${jobId}" style="background:var(--green);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
+            ${hasReport ? 'Edit Report' : 'Create Report'}
+          </a>
+          <a href="admin-dashboard.html" style="background:var(--navy);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
+            View in Dashboard
+          </a>
+          ${job.propertyAddress 
+            ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((job.propertyAddress + (job.city ? ', ' + job.city : '') + (job.zip ? ' ' + job.zip : '')).trim())}" target="_blank" style="background:var(--brown);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
+                View Map
+              </a>`
+            : ''
+          }
+        </div>
+      `;
+      
+      document.getElementById('jobModal').classList.add('active');
+    }
+
+    async function showClassRequestDetails(classRequestId) {
+      const classRequest = allClassRequests.find(cr => cr.id === classRequestId);
+      if (!classRequest) {
+        alert('Class request not found');
+        return;
+      }
+      
+      const preferredDate = classRequest.preferredDate ? 
+        new Date(classRequest.preferredDate).toLocaleDateString('en-US', { 
+          weekday: 'long',
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric'
+        }) : 'Not set';
+      
+      const modalBody = document.getElementById('jobModalBody');
+      modalBody.innerHTML = `
+        <div class="job-modal-header">
+          <h2 class="job-modal-title">${classRequest.confirmed ? 'Class' : 'Class Request'}</h2>
+          <div style="color:var(--gray);font-size:0.9rem">Class Request ID: ${classRequestId}</div>
+        </div>
+        <div class="job-modal-info">
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Company Name:</div>
+            <div class="job-modal-info-value">${classRequest.companyName || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Contact Name:</div>
+            <div class="job-modal-info-value">${classRequest.contactName || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Email:</div>
+            <div class="job-modal-info-value">${classRequest.contactEmail || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Phone:</div>
+            <div class="job-modal-info-value">${classRequest.contactPhone || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Company Address:</div>
+            <div class="job-modal-info-value">${classRequest.companyAddress || 'N/A'}<br>${classRequest.companyCity || ''}, ${classRequest.companyState || ''} ${classRequest.companyZip || ''}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Number of Agents:</div>
+            <div class="job-modal-info-value">${classRequest.numberOfAgents || 'N/A'}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Preferred Date:</div>
+            <div class="job-modal-info-value">${preferredDate}</div>
+          </div>
+          <div class="job-modal-info-item">
+            <div class="job-modal-info-label">Status:</div>
+            <div class="job-modal-info-value">
+              <span class="status-badge status-${classRequest.confirmed ? 'complete' : 'pending'}" style="padding:0.4rem 1rem;border-radius:20px;font-size:0.85rem;font-weight:600">
+                ${classRequest.confirmed ? 'Confirmed' : 'Pending Confirmation'}
+              </span>
+            </div>
+          </div>
+          ${classRequest.additionalNotes 
+            ? `<div class="job-modal-info-item">
+                <div class="job-modal-info-label">Additional Notes:</div>
+                <div class="job-modal-info-value" style="white-space:pre-wrap;word-break:break-word">${classRequest.additionalNotes}</div>
+              </div>`
+            : ''
+          }
+          ${classRequest.createdAt 
+            ? `<div class="job-modal-info-item">
+                <div class="job-modal-info-label">Submitted:</div>
+                <div class="job-modal-info-value">${new Date(classRequest.createdAt).toLocaleString()}</div>
+              </div>`
+            : ''
+          }
+        </div>
+        <div class="job-modal-actions">
+          ${!classRequest.confirmed 
+            ? `<button onclick="confirmClassRequest('${classRequestId}')" style="background:var(--green);color:white;padding:0.8rem 1.5rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;margin-right:1rem">
+                Confirm Class
+              </button>`
+            : ''
+          }
+        </div>
+      `;
+      
+      document.getElementById('jobModal').classList.add('active');
+    }
+
+    async function confirmClassRequest(classRequestId) {
+      try {
+        const classRequest = allClassRequests.find(cr => cr.id === classRequestId);
+        if (!classRequest) {
+          alert('Class request not found');
+          return;
+        }
+        
+        const updated = await window.classRequestsAPI.update(classRequestId, {
+          ...classRequest,
+          confirmed: true
+        });
+        
+        // Update local array
+        const index = allClassRequests.findIndex(cr => cr.id === classRequestId);
+        if (index !== -1) {
+          allClassRequests[index] = updated;
+        }
+        
+        // Close modal and refresh calendar
+        closeModal();
+        renderCalendar();
+        
+        alert('Class request confirmed! The title has been updated to "Class" on the calendar.');
+      } catch (error) {
+        console.error('Error confirming class request:', error);
+        alert('Failed to confirm class request: ' + error.message);
+      }
+    }
+
+    function closeModal(event) {
+      if (!event || event.target.id === 'jobModal' || event.target.classList.contains('job-modal-close')) {
+        document.getElementById('jobModal').classList.remove('active');
+      }
+    }
+
+    // Load jobs and render calendar on page load
+    loadJobs();
+  </script>
+</body>
+</html>
+

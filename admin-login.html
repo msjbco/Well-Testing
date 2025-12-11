@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .login-container {
+      min-height: calc(100vh - 90px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--light);
+    }
+    .login-box {
+      background: white;
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      max-width: 450px;
+      width: 100%;
+    }
+    .login-box h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--navy);
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      color: var(--navy);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .error-message {
+      color: #d32f2f;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <div class="login-container">
+    <div class="login-box">
+      <h1>Admin Login</h1>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Email</label>
+          <input type="email" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <div class="error-message" id="errorMessage">Invalid email or password</div>
+        <button type="submit" class="btn" style="width:100%;margin-top:1rem">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script>w3.includeHTML();</script>
+  <script>
+    // Admin credentials
+    const ADMIN_EMAIL = 'msjbco@gmail.com';
+    const ADMIN_PASSWORD = 'Idaho0747!';
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMessage');
+      
+      if (username === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        // Store admin session
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        sessionStorage.setItem('adminEmail', username);
+        
+        // Redirect to admin dashboard
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        errorMsg.classList.add('show');
+        setTimeout(() => {
+          errorMsg.classList.remove('show');
+        }, 3000);
+      }
+    });
+
+    // Check if already logged in - but allow manual logout by checking URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceLogin = urlParams.get('logout') === 'true';
+    
+    if (sessionStorage.getItem('adminLoggedIn') === 'true' && !forceLogin) {
+      window.location.href = 'admin-dashboard.html';
+    } else if (forceLogin) {
+      // Clear session if logout parameter is present
+      sessionStorage.clear();
+    }
+  </script>
+</body>
+</html>
+

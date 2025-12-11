@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find My Report | Peak to Plains Well Testing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- INSERT HEADER -->
+  <div w3-include-html="header.html"></div>
+  
+  <div class="hero-under-nav" style="background:linear-gradient(rgba(30,58,95,0.9),rgba(30,58,95,0.9)),url('images/hero.jpg') center/cover no-repeat;color:white;text-align:center;padding:6rem 0">
+    <h1 style="font-size:3.5rem;margin:0;color:white">Retrieve Your Well Inspection Report</h1>
+    <p style="font-size:1.4rem;max-width:800px;margin:2rem auto 0;color:white">Enter the street number, ZIP code, and email or phone used when scheduling to instantly access your completed report.</p>
+  </div>
+
+  <section class="content" style="padding:6rem 0">
+    <div class="container">
+      <div style="max-width:700px;margin:0 auto">
+        <div style="background:white;padding:3rem;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1)">
+          <form id="findReportForm" style="display:grid;gap:1.5rem">
+            <!-- Street Number -->
+            <div>
+              <label for="streetNumber" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                Street Number <span style="color:red">*</span>
+              </label>
+              <input type="text" 
+                     id="streetNumber" 
+                     name="streetNumber"
+                     required
+                     placeholder="e.g., 1234"
+                     style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+            </div>
+
+            <!-- ZIP Code -->
+            <div>
+              <label for="zipCode" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                ZIP Code <span style="color:red">*</span>
+              </label>
+              <input type="text" 
+                     id="zipCode" 
+                     name="zipCode"
+                     required
+                     placeholder="12345"
+                     maxlength="5"
+                     pattern="[0-9]{5}"
+                     style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+            </div>
+
+            <!-- Email or Phone -->
+            <div>
+              <label for="emailOrPhone" style="display:block;color:var(--navy);font-weight:600;margin-bottom:0.5rem;font-size:1.1rem">
+                Email or Phone <span style="color:red">*</span>
+              </label>
+              <input type="text" 
+                     id="emailOrPhone" 
+                     name="emailOrPhone"
+                     required
+                     placeholder="email@example.com or (555) 123-4567"
+                     style="width:100%;padding:1rem 1.5rem;border:2px solid #ddd;border-radius:8px;font-size:1.1rem;font-family:'Inter',sans-serif;box-sizing:border-box">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" 
+                    id="submitBtn"
+                    class="btn" 
+                    style="width:100%;padding:1.2rem;font-size:1.2rem;margin-top:1rem;background:var(--green);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:background 0.3s">
+              <span id="submitText">Show My Report</span>
+              <span id="submitSpinner" style="display:none">Searching...</span>
+            </button>
+
+            <!-- Info Note -->
+            <p style="text-align:center;color:#666;font-size:0.95rem;margin-top:1rem">
+              No account needed · Only completed and paid reports are available
+            </p>
+          </form>
+
+          <!-- Result Messages -->
+          <div id="resultMessage" style="display:none;margin-top:2rem;padding:1.5rem;border-radius:8px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 Peak to Plains Well Testing • Serving all of Colorado</p>
+      <p>Call or text anytime: <strong>(303) 555-1234</strong></p>
+    </div>
+  </footer>
+
+  <script src="https://www.w3schools.com/lib/w3.js"></script>
+  <script>w3.includeHTML();</script>
+  <script>
+    document.getElementById('findReportForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const submitText = document.getElementById('submitText');
+      const submitSpinner = document.getElementById('submitSpinner');
+      const resultMessage = document.getElementById('resultMessage');
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitText.style.display = 'none';
+      submitSpinner.style.display = 'inline';
+      resultMessage.style.display = 'none';
+      
+      const formData = {
+        streetNumber: document.getElementById('streetNumber').value.trim(),
+        zipCode: document.getElementById('zipCode').value.trim(),
+        emailOrPhone: document.getElementById('emailOrPhone').value.trim()
+      };
+      
+      try {
+        const response = await fetch('/api/find-report', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.pdfUrl) {
+          // Redirect to PDF
+          window.location.href = data.pdfUrl;
+          return;
+        }
+        
+        // Show result message
+        resultMessage.style.display = 'block';
+        let bgColor = '#fef2f2';
+        let borderColor = '#fecaca';
+        let textColor = '#991b1b';
+        
+        if (data.type === 'processing') {
+          bgColor = '#fef3c7';
+          borderColor = '#fde68a';
+          textColor = '#92400e';
+        } else if (data.type === 'multiple') {
+          bgColor = '#fef3c7';
+          borderColor = '#fde68a';
+          textColor = '#92400e';
+        }
+        
+        resultMessage.style.background = bgColor;
+        resultMessage.style.border = `2px solid ${borderColor}`;
+        resultMessage.style.color = textColor;
+        resultMessage.innerHTML = `
+          <p style="margin:0 0 0.5rem 0;font-weight:600">${data.message}</p>
+          ${data.type === 'processing' || data.type === 'notfound' || data.type === 'multiple' ? 
+            '<p style="margin:0;font-size:0.95rem">Text us at <a href="sms:970-XXX-XXXX" style="color:var(--green);font-weight:600">970-XXX-XXXX</a> for assistance.</p>' : 
+            ''}
+        `;
+        
+      } catch (error) {
+        resultMessage.style.display = 'block';
+        resultMessage.style.background = '#fef2f2';
+        resultMessage.style.border = '2px solid #fecaca';
+        resultMessage.style.color = '#991b1b';
+        resultMessage.innerHTML = '<p style="margin:0">An error occurred while searching. Please try again.</p>';
+      } finally {
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline';
+        submitSpinner.style.display = 'none';
+      }
+    });
+    
+    // Format ZIP code input (numbers only)
+    document.getElementById('zipCode').addEventListener('input', function(e) {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+    });
+  </script>
+</body>
+</html>
