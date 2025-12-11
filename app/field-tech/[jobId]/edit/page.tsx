@@ -82,7 +82,7 @@ export default function EditJobPage() {
               recommendations: '',
               well_basics: {},
               system_equipment: {},
-            })
+            } as any)
             .select('flow_readings, water_quality, photos, notes, recommendations, well_basics, system_equipment')
             .single();
           reportData = newReport;
@@ -198,7 +198,7 @@ export default function EditJobPage() {
             well_basics: currentReport.well_basics || {},
             system_equipment: currentReport.system_equipment || {},
             updated_at: new Date().toISOString(),
-          },
+          } as any,
           { onConflict: 'job_id' }
         );
 
