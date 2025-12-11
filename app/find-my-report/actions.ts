@@ -196,7 +196,7 @@ export async function findReport(
       return {
         success: false,
         type: 'processing',
-        message: 'Your report is still being processed or payment is pending. We'll email it as soon as it's ready, or text us at 970-XXX-XXXX for an update.',
+        message: "Your report is still being processed or payment is pending. We'll email it as soon as it's ready, or text us at 970-XXX-XXXX for an update.",
       };
     }
 
