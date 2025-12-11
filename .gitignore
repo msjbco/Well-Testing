@@ -28,3 +28,4 @@ next-env.d.ts
 
 # Large media files and client assets (exclude Misc folder with 7000+ client files)
 images/Misc/
+public/images/Misc/
