@@ -627,6 +627,10 @@ app.delete('/api/techs/:id', async (req, res) => {
   }
 });
 
-// Export as serverless function
-module.exports = app;
+// Export as Vercel serverless function
+// Vercel expects a handler function, not the app directly
+module.exports = (req, res) => {
+  // Handle the request with Express app
+  return app(req, res);
+};
 

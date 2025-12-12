@@ -21,6 +21,9 @@ const withPWA = require('next-pwa')({
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  // Ensure static files in public/ are served
+  // Next.js automatically serves files from public/, but we want to make sure
+  trailingSlash: false,
 };
 
 module.exports = withPWA(nextConfig);
