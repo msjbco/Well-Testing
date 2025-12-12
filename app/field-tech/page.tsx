@@ -349,30 +349,26 @@ export default function FieldTechHomePage() {
                       <p className="text-gray-400 text-sm mb-2">
                         {job.address || 'No address'}
                       </p>
-                      {(job.willBePresent === 'no' && job.accessInstructions) || job.notes ? (
-                        <div className="flex items-center gap-2 mb-2">
-                          {job.willBePresent === 'no' && job.accessInstructions && (
-                            <p className="text-gray-500 text-xs flex-1">
-                              Access: {job.accessInstructions}
-                            </p>
-                          )}
-                          {job.notes && (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setNotesPopup({ jobId: job.id, notes: job.notes || '' });
-                              }}
-                              className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded whitespace-nowrap"
-                            >
-                              📝 Note
-                            </button>
-                          )}
-                        </div>
-                      ) : null}
-                      <p className="text-gray-500 text-xs">
-                        {formatDate(job.created_at)}
+                      {job.willBePresent === 'no' && job.accessInstructions && (
+                        <p className="text-gray-500 text-xs font-bold mb-1">
+                          Access: {job.accessInstructions}
+                        </p>
+                      )}
+                      <p className="text-gray-500 text-xs font-bold mb-2">
+                        {job.scheduledDate ? formatDate(job.scheduledDate) : formatDate(job.created_at)}
                       </p>
+                      {job.notes && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setNotesPopup({ jobId: job.id, notes: job.notes || '' });
+                          }}
+                          className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded whitespace-nowrap"
+                        >
+                          📝 Note
+                        </button>
+                      )}
                     </div>
                     <span
                       className={`${badge.color} text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-3`}
