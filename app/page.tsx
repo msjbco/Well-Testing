@@ -1,31 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, supabase } from '@/lib/supabase';
-import Link from 'next/link';
-import toast from 'react-hot-toast';
 
 export default function HomePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkAuth() {
-      const currentUser = await getCurrentUser();
-      if (!currentUser) {
-        router.push('/login');
-      } else {
-        setUser(currentUser);
-        setLoading(false);
-        // Redirect to field tech home
-        router.replace('/field-tech');
-        return;
-      }
+    // Redirect root to admin website (main website)
+    // The admin website HTML files are in public/ folder
+    // They're accessible at /index.html, /admin-dashboard.html, etc.
+    // For root, redirect to index.html (the main marketing site)
+    if (typeof window !== 'undefined') {
+      window.location.href = '/index.html';
     }
-    checkAuth();
   }, [router]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-xl text-gray-600">Redirecting to main website...</div>
+    </div>
+  );
+}
 
   const handleLogout = async () => {
     try {
