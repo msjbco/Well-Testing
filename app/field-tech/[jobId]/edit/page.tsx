@@ -270,18 +270,41 @@ export default function EditJobPage() {
     { id: 'notes', label: 'Notes' },
   ];
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast.success('Logged out successfully');
+      router.push('/login');
+      router.refresh();
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || 'Failed to logout');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#1A1B2C] pb-24">
       {/* Header */}
       <div className="bg-[#24253B] border-b border-[#2D2E47] text-white p-6 shadow-lg sticky top-0 z-10">
-        <button
-          onClick={() => router.push('/field-tech')}
-          className="mb-2 text-gray-400 hover:text-white text-sm transition-colors"
-        >
-          ← Back to Jobs
-        </button>
-        <h1 className="text-2xl font-bold mb-1 text-white">{job.client_name}</h1>
-        <p className="text-sm text-gray-400">{job.address}</p>
+        <div className="flex justify-between items-start mb-2">
+          <button
+            onClick={() => router.push('/field-tech')}
+            className="text-gray-400 hover:text-white text-sm transition-colors"
+          >
+            ← Back to Jobs
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-[#FF6B35] hover:bg-[#e55a2b] text-white px-3 py-1 rounded text-xs font-semibold transition-colors"
+            aria-label="Logout"
+          >
+            Logout
+          </button>
+        </div>
+        <h1 className="text-2xl font-bold mb-1 text-white">{job?.client_name || 'Loading...'}</h1>
+        <p className="text-sm text-gray-400">{job?.address || ''}</p>
         {!isOnline && (
           <div className="mt-2 bg-yellow-500 text-yellow-900 px-3 py-1 rounded text-xs font-semibold inline-block">
             ⚠️ Offline Mode

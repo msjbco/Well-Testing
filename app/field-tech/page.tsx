@@ -274,6 +274,20 @@ export default function FieldTechHomePage() {
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast.success('Logged out successfully');
+      router.push('/login');
+      router.refresh();
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || 'Failed to logout');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#1A1B2C] pb-20">
       {/* Header */}
@@ -283,11 +297,20 @@ export default function FieldTechHomePage() {
             <h1 className="text-2xl font-bold">Field Tech</h1>
             <p className="text-sm text-gray-400">Peak to Plains</p>
           </div>
-          {!isOnline && (
-            <div className="bg-yellow-500 text-yellow-900 px-3 py-1 rounded text-xs font-semibold">
-              Offline
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {!isOnline && (
+              <div className="bg-yellow-500 text-yellow-900 px-3 py-1 rounded text-xs font-semibold">
+                Offline
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="bg-[#FF6B35] hover:bg-[#e55a2b] text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+              aria-label="Logout"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
