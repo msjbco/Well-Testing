@@ -986,9 +986,12 @@
       const assignedTechSelect = document.getElementById('assignedTech');
       const assignedTechId = assignedTechSelect ? assignedTechSelect.value : null;
 
-      const firstName = document.getElementById('firstName').value;
-      const lastName = document.getElementById('lastName').value;
-      const clientName = `${firstName} ${lastName}`.trim();
+      // Get client name from the single name field
+      const clientName = document.getElementById('name').value.trim();
+      // Split into first and last name if possible
+      const nameParts = clientName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
 
       const jobData = {
         propertyAddress: document.getElementById('propertyAddress').value,
@@ -996,6 +999,7 @@
         zip: document.getElementById('zip').value || null,
         county: document.getElementById('county').value,
         name: clientName,
+        client_name: clientName,
         firstName: firstName,
         lastName: lastName,
         userRole: userRole === 'other' 
