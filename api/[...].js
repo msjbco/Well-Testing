@@ -611,6 +611,7 @@ app.get('/api/reports/:id', async (req, res) => {
     // Primary: Get report from Supabase (this is what works on Vercel)
     if (supabase) {
       try {
+        console.log(`🔍 Attempting to load report ${id} from Supabase...`);
         const { data, error } = await supabase
           .from('well_reports')
           .select('*')
@@ -618,8 +619,13 @@ app.get('/api/reports/:id', async (req, res) => {
           .single();
         
         if (error) {
-          console.error('Error loading report from Supabase:', error);
+          console.error('❌ Error loading report from Supabase:', error);
+          console.error('   Error code:', error.code);
+          console.error('   Error message:', error.message);
+          console.error('   Error details:', error.details);
+          console.error('   Error hint:', error.hint);
         } else if (data) {
+          console.log(`✅ Found report ${id} in Supabase`);
           // Map Supabase format to expected format (with data property for admin site compatibility)
           report = {
             id: data.id,
@@ -692,6 +698,7 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
     // Primary: Get report from Supabase (this is what works on Vercel)
     if (supabase) {
       try {
+        console.log(`🔍 Attempting to load report for job ${jobId} from Supabase...`);
         const { data, error } = await supabase
           .from('well_reports')
           .select('*')
@@ -699,8 +706,13 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
           .single();
         
         if (error) {
-          console.error('Error loading report from Supabase:', error);
+          console.error('❌ Error loading report from Supabase:', error);
+          console.error('   Error code:', error.code);
+          console.error('   Error message:', error.message);
+          console.error('   Error details:', error.details);
+          console.error('   Error hint:', error.hint);
         } else if (data) {
+          console.log(`✅ Found report for job ${jobId} in Supabase (report ID: ${data.id})`);
           // Map Supabase format to expected format (with data property for admin site compatibility)
           report = {
             id: data.id,
