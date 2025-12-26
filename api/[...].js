@@ -763,12 +763,25 @@ app.delete('/api/techs/:id', async (req, res) => {
     try {
       console.log('🗑️ Attempting to delete tech from Supabase:', id);
       
-      const { data, error } = await supabase
+      // First check if tech exists
+      const { data: existingTech, error: checkError } = await supabase
+        .from('technicians')
+        .select('id')
+        .eq('id', id)
+        .single();
+      
+      if (checkError || !existingTech) {
+        console.error('❌ Tech not found in Supabase:', id);
+        return res.status(404).json({ 
+          error: 'Tech not found' 
+        });
+      }
+      
+      // Delete the tech
+      const { error } = await supabase
         .from('technicians')
         .delete()
-        .eq('id', id)
-        .select()
-        .single();
+        .eq('id', id);
       
       if (error) {
         console.error('❌ Supabase error deleting tech:', error);
@@ -781,10 +794,8 @@ app.delete('/api/techs/:id', async (req, res) => {
         });
       }
       
-      if (data || !error) {
-        console.log('✅ Tech deleted successfully from Supabase:', id);
-        return res.json({ success: true });
-      }
+      console.log('✅ Tech deleted successfully from Supabase:', id);
+      return res.json({ success: true });
     } catch (supabaseErr) {
       console.error('❌ Exception deleting tech from Supabase:', supabaseErr);
       console.error('   Stack:', supabaseErr.stack);
