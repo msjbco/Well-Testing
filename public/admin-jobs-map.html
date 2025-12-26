@@ -548,7 +548,7 @@
                 ${job.city ? ', ' + job.city : ''}
                 ${job.zip ? ' ' + job.zip : ''}
               </h3>
-              <p><strong>Client:</strong> ${job.name || 'N/A'}</p>
+              <p><strong>Client:</strong> ${job.client_name || job.name || 'N/A'}</p>
               <p><strong>Scheduled:</strong> ${job.scheduledDate ? new Date(job.scheduledDate).toLocaleString() : 'Not set'}</p>
               <p><strong>Status:</strong> ${(job.status || 'pending').charAt(0).toUpperCase() + (job.status || 'pending').slice(1)}</p>
               <a href="admin-job-detail.html?jobId=${job.id}">View Job Details →</a>

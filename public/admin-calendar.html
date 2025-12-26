@@ -669,7 +669,7 @@
         <div class="job-modal-info">
           <div class="job-modal-info-item">
             <div class="job-modal-info-label">Client Name:</div>
-            <div class="job-modal-info-value">${job.name || 'N/A'}</div>
+            <div class="job-modal-info-value">${job.client_name || job.name || 'N/A'}</div>
           </div>
           <div class="job-modal-info-item">
             <div class="job-modal-info-label">County:</div>
@@ -677,7 +677,7 @@
           </div>
           <div class="job-modal-info-item">
             <div class="job-modal-info-label">Role:</div>
-            <div class="job-modal-info-value">${job.userRole || 'N/A'}</div>
+            <div class="job-modal-info-value">${job.role || job.userRole || 'N/A'}</div>
           </div>
           <div class="job-modal-info-item">
             <div class="job-modal-info-label">Well Permit #:</div>

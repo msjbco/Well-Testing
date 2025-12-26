@@ -645,7 +645,7 @@
               </div>
               <div class="report-item">
                 <div class="report-label">Client Name</div>
-                <div class="report-value">${job ? job.name : 'N/A'}</div>
+                <div class="report-value">${job ? (job.client_name || job.name) : 'N/A'}</div>
               </div>
               <div class="report-item">
                 <div class="report-label">Well Permit #</div>
