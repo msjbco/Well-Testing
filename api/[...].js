@@ -502,29 +502,61 @@ app.delete('/api/reports/:id', async (req, res) => {
   }
 });
 
-// Techs API (simplified)
+// Techs API - Use Supabase as primary source (Vercel doesn't have persistent file system)
 app.get('/api/techs', async (req, res) => {
   try {
     let techs = [];
-    try {
-      techs = await readDataFile('techs.json');
-    } catch (error) {}
     
+    // Primary: Try Supabase first (this is what works on Vercel)
     if (supabase) {
       try {
-        const { data } = await supabase.from('technicians').select('*').order('created_at', { ascending: false });
-        if (data) {
-          for (const supTech of data) {
-            if (!techs.find(t => t.id === supTech.id)) {
-              techs.push(supTech);
-            }
-          }
+        const { data, error } = await supabase
+          .from('technicians')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error loading techs from Supabase:', error);
+        } else if (data && data.length > 0) {
+          // Map Supabase format to expected format
+          techs = data.map(tech => ({
+            id: tech.id,
+            name: tech.name || '',
+            email: tech.email || '',
+            phone: tech.phone || null,
+            active: tech.active !== undefined ? tech.active : true,
+            userId: tech.user_id,
+            user_id: tech.user_id,
+            createdAt: tech.created_at,
+            created_at: tech.created_at,
+            updatedAt: tech.updated_at,
+            updated_at: tech.updated_at,
+          }));
+          console.log(`✅ Loaded ${techs.length} techs from Supabase`);
+          return res.json(techs);
         }
-      } catch (error) {}
+      } catch (supabaseErr) {
+        console.error('Supabase error loading techs:', supabaseErr);
+      }
     }
     
-    res.json(techs);
+    // Fallback: Try local JSON (only works in development, not on Vercel)
+    try {
+      const localTechs = await readDataFile('techs.json');
+      if (localTechs && localTechs.length > 0) {
+        console.log(`✅ Loaded ${localTechs.length} techs from local JSON`);
+        return res.json(localTechs);
+      }
+    } catch (localErr) {
+      // File system not available (expected on Vercel)
+      console.log('Local file system not available (expected on Vercel)');
+    }
+    
+    // Return empty array if nothing found
+    console.log('⚠️ No techs found in Supabase or local storage');
+    res.json([]);
   } catch (error) {
+    console.error('Error in /api/techs:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -534,47 +566,120 @@ app.get('/api/techs/:id', async (req, res) => {
     const { id } = req.params;
     let tech = null;
     
+    // Primary: Try Supabase first
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('technicians')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (!error && data) {
+          tech = {
+            id: data.id,
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || null,
+            active: data.active !== undefined ? data.active : true,
+            userId: data.user_id,
+            user_id: data.user_id,
+            createdAt: data.created_at,
+            created_at: data.created_at,
+            updatedAt: data.updated_at,
+            updated_at: data.updated_at,
+          };
+          return res.json(tech);
+        }
+      } catch (supabaseErr) {
+        console.error('Supabase error loading tech:', supabaseErr);
+      }
+    }
+    
+    // Fallback: Try local JSON
     try {
       const techs = await readDataFile('techs.json');
       tech = techs.find(t => t.id === id);
-    } catch (error) {}
-    
-    if (!tech && supabase) {
-      try {
-        const { data } = await supabase.from('technicians').select('*').eq('id', id).single();
-        if (data) tech = data;
-      } catch (error) {}
+      if (tech) return res.json(tech);
+    } catch (error) {
+      // File system not available (expected on Vercel)
     }
     
-    if (!tech) return res.status(404).json({ error: 'Technician not found' });
-    res.json(tech);
+    return res.status(404).json({ error: 'Technician not found' });
   } catch (error) {
+    console.error('Error in /api/techs/:id:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.post('/api/techs', async (req, res) => {
   try {
-    const newTech = req.body;
-    if (!newTech.id) newTech.id = `tech-${Date.now()}`;
-    newTech.created_at = new Date().toISOString();
-    newTech.updated_at = new Date().toISOString();
+    const techData = req.body;
+    const now = new Date().toISOString();
     
-    try {
-      const techs = await readDataFile('techs.json');
-      techs.push(newTech);
-      await writeDataFile('techs.json', techs);
-    } catch (error) {}
+    // Prepare tech data for Supabase
+    const supabaseTech = {
+      name: techData.name || '',
+      email: techData.email || '',
+      phone: techData.phone || null,
+      active: techData.active !== undefined ? techData.active : true,
+      user_id: techData.user_id || techData.userId || null,
+      created_at: techData.created_at || now,
+      updated_at: now,
+    };
     
+    // Primary: Save to Supabase first
     if (supabase) {
       try {
-        const { data } = await supabase.from('technicians').insert(newTech).select().single();
-        if (data) newTech.id = data.id;
-      } catch (error) {}
+        const { data, error } = await supabase
+          .from('technicians')
+          .insert(supabaseTech)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Supabase error creating tech:', error);
+          throw error;
+        }
+        
+        if (data) {
+          const createdTech = {
+            id: data.id,
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || null,
+            active: data.active !== undefined ? data.active : true,
+            userId: data.user_id,
+            user_id: data.user_id,
+            createdAt: data.created_at,
+            created_at: data.created_at,
+            updatedAt: data.updated_at,
+            updated_at: data.updated_at,
+          };
+          return res.status(201).json(createdTech);
+        }
+      } catch (supabaseErr) {
+        console.error('Error creating tech in Supabase:', supabaseErr);
+        // Continue to fallback
+      }
     }
     
-    res.status(201).json(newTech);
+    // Fallback: Save to local JSON (development only)
+    try {
+      if (!techData.id) techData.id = `tech-${Date.now()}`;
+      techData.created_at = now;
+      techData.updated_at = now;
+      
+      const techs = await readDataFile('techs.json');
+      techs.push(techData);
+      await writeDataFile('techs.json', techs);
+      return res.status(201).json(techData);
+    } catch (localErr) {
+      // File system not available (expected on Vercel)
+      return res.status(500).json({ error: 'Failed to create tech. Supabase not available.' });
+    }
   } catch (error) {
+    console.error('Error in POST /api/techs:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
