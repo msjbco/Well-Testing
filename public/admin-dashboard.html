@@ -625,18 +625,18 @@
                 <div style="display:flex;flex-direction:column;gap:0.5rem;flex:1">
                   <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
                     <a href="admin-job-detail.html?jobId=${jobId}" class="job-address">
-                      ${job.propertyAddress || 'No address provided'}${job.city ? ', ' + job.city : ''}${job.zip ? ' ' + job.zip : ''}
+                      ${job.address || job.propertyAddress || 'No address provided'}${job.city ? ', ' + job.city : ''}${job.zip ? ' ' + job.zip : ''}
                     </a>
                     <button class="edit-address-btn" onclick="editAddress('${jobId}')" title="Edit address">
                       ✏️
                     </button>
-                    ${job.propertyAddress 
-                      ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((job.propertyAddress + (job.city ? ', ' + job.city : '') + (job.zip ? ' ' + job.zip : '')).trim())}" target="_blank" rel="noopener noreferrer" style="background:var(--green);color:white;padding:0.4rem 0.8rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600;white-space:nowrap">Map</a>`
+                    ${(job.address || job.propertyAddress)
+                      ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((job.address || job.propertyAddress) + (job.city ? ', ' + job.city : '') + (job.zip ? ' ' + job.zip : '')).trim())}" target="_blank" rel="noopener noreferrer" style="background:var(--green);color:white;padding:0.4rem 0.8rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600;white-space:nowrap">Map</a>`
                       : ''
                     }
                   </div>
                   <div class="address-edit-form" id="addressEditForm_${jobId}">
-                    <input type="text" id="editPropertyAddress_${jobId}" placeholder="Property Address" value="${job.propertyAddress || ''}">
+                    <input type="text" id="editPropertyAddress_${jobId}" placeholder="Property Address" value="${job.address || job.propertyAddress || ''}">
                     <input type="text" id="editCity_${jobId}" placeholder="City" value="${job.city || ''}">
                     <input type="text" id="editZip_${jobId}" placeholder="ZIP Code" value="${job.zip || ''}" maxlength="5">
                     <div class="address-edit-actions">
@@ -1099,7 +1099,8 @@
         const job = await window.jobsAPI.getById(jobId);
         const updateData = {
           ...job,
-          propertyAddress: propertyAddress || null,
+          address: propertyAddress || null, // Save to 'address' field (database field name)
+          propertyAddress: propertyAddress || null, // Also keep for backward compatibility
           city: city || null,
           zip: zip || null
         };

@@ -564,7 +564,7 @@
             const statusClass = status === 'completed' ? 'complete' : status;
             const jobTime = job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
             const jobCity = job.city || 'No City';
-            jobsHTML += `<div class="calendar-job ${statusClass}" onclick="event.stopPropagation();showJobDetails('${job.id}')" title="${job.propertyAddress || 'No address'} - ${jobTime}">
+            jobsHTML += `<div class="calendar-job ${statusClass}" onclick="event.stopPropagation();showJobDetails('${job.id}')" title="${job.address || job.propertyAddress || 'No address'} - ${jobTime}">
               ${jobTime ? jobTime + ' - ' : ''}${jobCity}
             </div>`;
           } else if (item.type === 'classRequest') {
@@ -663,7 +663,7 @@
       const modalBody = document.getElementById('jobModalBody');
       modalBody.innerHTML = `
         <div class="job-modal-header">
-          <h2 class="job-modal-title">${job.propertyAddress || 'No Address'}${job.city ? ', ' + job.city : ''}${job.zip ? ' ' + job.zip : ''}</h2>
+          <h2 class="job-modal-title">${job.address || job.propertyAddress || 'No Address'}${job.city ? ', ' + job.city : ''}${job.zip ? ' ' + job.zip : ''}</h2>
           <div style="color:var(--gray);font-size:0.9rem">Job ID: ${jobId}</div>
         </div>
         <div class="job-modal-info">
@@ -719,8 +719,8 @@
           <a href="admin-dashboard.html" style="background:var(--navy);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
             View in Dashboard
           </a>
-          ${job.propertyAddress 
-            ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((job.propertyAddress + (job.city ? ', ' + job.city : '') + (job.zip ? ' ' + job.zip : '')).trim())}" target="_blank" style="background:var(--brown);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
+          ${(job.address || job.propertyAddress)
+            ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((job.address || job.propertyAddress) + (job.city ? ', ' + job.city : '') + (job.zip ? ' ' + job.zip : '')).trim())}" target="_blank" style="background:var(--brown);color:white;padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600">
                 View Map
               </a>`
             : ''

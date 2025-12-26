@@ -339,17 +339,18 @@
     }
 
     async function geocodeAddress(job) {
-      if (!job.propertyAddress) {
-        console.warn('Job missing address:', job.id, job.propertyAddress);
+      if (!job.address && !job.propertyAddress) {
+        console.warn('Job missing address:', job.id, job.address || job.propertyAddress);
         return null;
       }
 
       // Try multiple address formats for better geocoding success
       const addressAttempts = [];
+      const streetAddress = job.address || job.propertyAddress;
       
       // Full address with all components
       const fullAddress = [
-        job.propertyAddress,
+        streetAddress,
         job.city,
         job.zip ? job.zip : '',
         'Colorado'
@@ -358,15 +359,15 @@
       
       // If city/zip exist, try with just address + city + CO
       if (job.city) {
-        addressAttempts.push(`${job.propertyAddress}, ${job.city}, Colorado`);
+        addressAttempts.push(`${streetAddress}, ${job.city}, Colorado`);
       }
       
       // Try with just address + Colorado
-      addressAttempts.push(`${job.propertyAddress}, Colorado`);
+      addressAttempts.push(`${streetAddress}, Colorado`);
       
       // Try with address + zip + CO if zip exists
       if (job.zip) {
-        addressAttempts.push(`${job.propertyAddress}, ${job.zip}, Colorado`);
+        addressAttempts.push(`${streetAddress}, ${job.zip}, Colorado`);
       }
 
       for (const addressToTry of addressAttempts) {
@@ -543,7 +544,7 @@
           .addTo(map)
           .bindPopup(`
             <div>
-              <h3>${job.propertyAddress || 'No address'}
+              <h3>${job.address || job.propertyAddress || 'No address'}
                 ${job.city ? ', ' + job.city : ''}
                 ${job.zip ? ' ' + job.zip : ''}
               </h3>

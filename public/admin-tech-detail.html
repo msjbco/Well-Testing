@@ -668,7 +668,7 @@
           return `
             <div class="job-line" onclick="window.location.href='admin-job-detail.html?jobId=${job.id}'">
               <div class="job-line-info">
-                <div class="job-line-address">${job.propertyAddress || 'No address'}${job.city ? ', ' + job.city : ''}</div>
+                <div class="job-line-address">${job.address || job.propertyAddress || 'No address'}${job.city ? ', ' + job.city : ''}</div>
                 <div class="job-line-date">${jobDate}</div>
                 <div class="job-line-status status-${statusClass}">${statusText}</div>
               </div>
@@ -781,7 +781,7 @@
         // Add marker if we have coordinates
         if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
           const marker = L.marker([lat, lng])
-            .bindPopup(`<strong>${job.propertyAddress || 'No address'}</strong><br>${job.city || ''}<br>${formatCurrency(calculateJobPrice(job))}`)
+            .bindPopup(`<strong>${job.address || job.propertyAddress || 'No address'}</strong><br>${job.city || ''}<br>${formatCurrency(calculateJobPrice(job))}`)
             .addTo(map);
           markers.push(marker);
         }

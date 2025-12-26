@@ -637,7 +637,7 @@
             <div class="report-grid">
               <div class="report-item">
                 <div class="report-label">Property Address</div>
-                <div class="report-value">${job ? job.propertyAddress : 'N/A'}</div>
+                <div class="report-value">${job ? (job.address || job.propertyAddress) : 'N/A'}</div>
               </div>
               <div class="report-item">
                 <div class="report-label">County</div>
