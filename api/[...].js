@@ -28,12 +28,26 @@ if (createClient) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
+    console.log('🔍 Supabase initialization check:');
+    console.log('  - URL present:', !!supabaseUrl);
+    console.log('  - Key present:', !!supabaseKey);
+    console.log('  - Using service role:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    
     if (supabaseUrl && supabaseKey) {
       supabase = createClient(supabaseUrl, supabaseKey);
+      console.log('✅ Supabase client initialized');
+    } else {
+      console.warn('⚠️ Supabase not initialized - missing URL or key');
+      console.warn('  - NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+      console.warn('  - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Missing');
+      console.warn('  - NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing');
     }
   } catch (error) {
-    console.warn('Failed to initialize Supabase:', error.message);
+    console.error('❌ Failed to initialize Supabase:', error.message);
+    console.error('   Stack:', error.stack);
   }
+} else {
+  console.warn('⚠️ @supabase/supabase-js not available');
 }
 
 // Middleware
@@ -629,39 +643,63 @@ app.post('/api/techs', async (req, res) => {
     };
     
     // Primary: Save to Supabase first
-    if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('technicians')
-          .insert(supabaseTech)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('Supabase error creating tech:', error);
-          throw error;
-        }
-        
-        if (data) {
-          const createdTech = {
-            id: data.id,
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || null,
-            active: data.active !== undefined ? data.active : true,
-            userId: data.user_id,
-            user_id: data.user_id,
-            createdAt: data.created_at,
-            created_at: data.created_at,
-            updatedAt: data.updated_at,
-            updated_at: data.updated_at,
-          };
-          return res.status(201).json(createdTech);
-        }
-      } catch (supabaseErr) {
-        console.error('Error creating tech in Supabase:', supabaseErr);
-        // Continue to fallback
+    if (!supabase) {
+      console.error('❌ Supabase client is null - cannot create tech');
+      console.error('   Check environment variables in Vercel:');
+      console.error('   - NEXT_PUBLIC_SUPABASE_URL');
+      console.error('   - SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      return res.status(500).json({ 
+        error: 'Supabase not available. Please check environment variables in Vercel settings.' 
+      });
+    }
+    
+    try {
+      console.log('📝 Attempting to create tech in Supabase:', {
+        name: supabaseTech.name,
+        email: supabaseTech.email,
+        hasUserId: !!supabaseTech.user_id
+      });
+      
+      const { data, error } = await supabase
+        .from('technicians')
+        .insert(supabaseTech)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ Supabase error creating tech:', error);
+        console.error('   Error code:', error.code);
+        console.error('   Error message:', error.message);
+        console.error('   Error details:', error.details);
+        return res.status(400).json({ 
+          error: `Failed to create tech: ${error.message}`,
+          details: error.details || error.hint || ''
+        });
       }
+      
+      if (data) {
+        console.log('✅ Tech created successfully in Supabase:', data.id);
+        const createdTech = {
+          id: data.id,
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || null,
+          active: data.active !== undefined ? data.active : true,
+          userId: data.user_id,
+          user_id: data.user_id,
+          createdAt: data.created_at,
+          created_at: data.created_at,
+          updatedAt: data.updated_at,
+          updated_at: data.updated_at,
+        };
+        return res.status(201).json(createdTech);
+      }
+    } catch (supabaseErr) {
+      console.error('❌ Exception creating tech in Supabase:', supabaseErr);
+      console.error('   Stack:', supabaseErr.stack);
+      return res.status(500).json({ 
+        error: `Failed to create tech: ${supabaseErr.message}` 
+      });
     }
     
     // Fallback: Save to local JSON (development only)
