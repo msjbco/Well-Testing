@@ -83,6 +83,7 @@ const techsAPI = {
     body: JSON.stringify(techData)
   }),
   delete: (id) => apiCall(`/techs/${id}`, {
+    method: 'DELETE',
     method: 'DELETE'
   })
 };

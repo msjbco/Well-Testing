@@ -777,40 +777,49 @@ app.delete('/api/techs/:id', async (req, res) => {
         });
       }
       
-      // Delete the tech
-      const { data: deletedData, error } = await supabase
+      // Delete the tech - don't use .select() as it may cause issues
+      const { error, status, statusText } = await supabase
         .from('technicians')
         .delete()
-        .eq('id', id)
-        .select();
+        .eq('id', id);
       
       if (error) {
-        console.error('❌ Supabase error deleting tech:', JSON.stringify(error, null, 2));
-        console.error('   Full error object:', error);
-        console.error('   Error code:', error.code);
-        console.error('   Error message:', error.message);
-        console.error('   Error details:', error.details);
-        console.error('   Error hint:', error.hint);
+        // Log everything about the error
+        const errorInfo = {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          status: status,
+          statusText: statusText,
+          fullError: String(error)
+        };
         
-        // Provide more detailed error message
-        const errorMsg = error.message || error.code || 'Unknown error occurred';
+        console.error('❌ Supabase error deleting tech:', JSON.stringify(errorInfo, null, 2));
+        console.error('   Raw error:', error);
+        
+        // Try to get a meaningful error message
+        let errorMsg = 'Unknown error occurred';
+        if (error.message) {
+          errorMsg = error.message;
+        } else if (error.code) {
+          errorMsg = `Error code: ${error.code}`;
+        } else if (error.details) {
+          errorMsg = error.details;
+        } else if (typeof error === 'string') {
+          errorMsg = error;
+        }
+        
         return res.status(400).json({ 
           error: `Failed to delete tech: ${errorMsg}`,
-          details: error.details || error.hint || error.code || '',
-          fullError: process.env.NODE_ENV === 'development' ? error : undefined
+          code: error.code || '',
+          details: error.details || error.hint || ''
         });
       }
       
-      // Check if anything was actually deleted
-      if (!deletedData || deletedData.length === 0) {
-        console.warn('⚠️ Delete operation returned no data - tech may not exist:', id);
-        return res.status(404).json({ 
-          error: 'Tech not found or already deleted' 
-        });
-      }
-      
+      // If no error, deletion was successful
       console.log('✅ Tech deleted successfully from Supabase:', id);
-      return res.json({ success: true });
+      return res.json({ success: true, message: 'Tech deleted successfully' });
     } catch (supabaseErr) {
       console.error('❌ Exception deleting tech from Supabase:', supabaseErr);
       console.error('   Stack:', supabaseErr.stack);
