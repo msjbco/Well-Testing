@@ -205,7 +205,30 @@ export default function FlowTestTab({
     // Calculate volumes (in gallons)
     const volume12hr = currentAverage * 60 * 12; // GPM * 60 min/hr * 12 hr
     const volume24hr = currentAverage * 60 * 24; // GPM * 60 min/hr * 24 hr
-    const totalWaterDischarged = currentAverage * 60 * 24; // Same as 24hr for now
+    
+    // Calculate total water discharged: sum of (gpm * interval_time) for each interval
+    let totalWaterDischarged = 0;
+    if (enteredReadings.length > 0) {
+      for (let i = 0; i < enteredReadings.length; i++) {
+        const current = enteredReadings[i];
+        const next = enteredReadings[i + 1];
+        
+        if (current.gpm !== null && current.gpm > 0 && current.time !== null && current.time !== undefined) {
+          if (next && next.time !== null && next.time !== undefined) {
+            // Calculate interval time in minutes
+            const intervalMinutes = next.time - current.time;
+            // Gallons for this interval = GPM * minutes
+            totalWaterDischarged += current.gpm * intervalMinutes;
+          } else if (i === enteredReadings.length - 1) {
+            // Last reading: use average interval if we have multiple readings, otherwise default to 15 minutes
+            const avgInterval = enteredReadings.length > 1 
+              ? (current.time - enteredReadings[0].time) / (enteredReadings.length - 1)
+              : 15;
+            totalWaterDischarged += current.gpm * avgInterval;
+          }
+        }
+      }
+    }
 
     return {
       readingsWithPercentChange,
