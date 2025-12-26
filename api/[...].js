@@ -761,7 +761,7 @@ app.delete('/api/techs/:id', async (req, res) => {
     
     // Primary: Delete from Supabase
     try {
-      console.log('🗑️ Attempting to delete tech from Supabase:', id);
+      console.log('🗑️ Attempting to delete tech from Supabase:', id); 
       
       // First check if tech exists
       const { data: existingTech, error: checkError } = await supabase
@@ -778,19 +778,34 @@ app.delete('/api/techs/:id', async (req, res) => {
       }
       
       // Delete the tech
-      const { error } = await supabase
+      const { data: deletedData, error } = await supabase
         .from('technicians')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
       if (error) {
-        console.error('❌ Supabase error deleting tech:', error);
+        console.error('❌ Supabase error deleting tech:', JSON.stringify(error, null, 2));
+        console.error('   Full error object:', error);
         console.error('   Error code:', error.code);
         console.error('   Error message:', error.message);
         console.error('   Error details:', error.details);
+        console.error('   Error hint:', error.hint);
+        
+        // Provide more detailed error message
+        const errorMsg = error.message || error.code || 'Unknown error occurred';
         return res.status(400).json({ 
-          error: `Failed to delete tech: ${error.message}`,
-          details: error.details || error.hint || ''
+          error: `Failed to delete tech: ${errorMsg}`,
+          details: error.details || error.hint || error.code || '',
+          fullError: process.env.NODE_ENV === 'development' ? error : undefined
+        });
+      }
+      
+      // Check if anything was actually deleted
+      if (!deletedData || deletedData.length === 0) {
+        console.warn('⚠️ Delete operation returned no data - tech may not exist:', id);
+        return res.status(404).json({ 
+          error: 'Tech not found or already deleted' 
         });
       }
       
