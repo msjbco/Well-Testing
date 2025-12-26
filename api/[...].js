@@ -109,6 +109,75 @@ function checkRateLimit(ip) {
   return true;
 }
 
+// ========== DIAGNOSTIC ROUTES ==========
+
+// Diagnostic endpoint to check if report exists for a job
+app.get('/api/diagnostic/report/:jobId', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    
+    const diagnostic = {
+      jobId,
+      timestamp: new Date().toISOString(),
+      supabaseAvailable: !!supabase,
+      checks: {}
+    };
+    
+    if (supabase) {
+      // Check if job exists
+      try {
+        const { data: jobData, error: jobError } = await supabase
+          .from('jobs')
+          .select('id, address, client_name')
+          .eq('id', jobId)
+          .single();
+        
+        diagnostic.checks.jobExists = !jobError && !!jobData;
+        diagnostic.checks.jobData = jobData || null;
+        diagnostic.checks.jobError = jobError ? { message: jobError.message, code: jobError.code } : null;
+      } catch (err) {
+        diagnostic.checks.jobExists = false;
+        diagnostic.checks.jobError = { message: err.message };
+      }
+      
+      // Check if report exists
+      try {
+        const { data: reportData, error: reportError } = await supabase
+          .from('well_reports')
+          .select('id, job_id, created_at, updated_at, flow_readings, water_quality, photos, notes')
+          .eq('job_id', jobId)
+          .maybeSingle();
+        
+        diagnostic.checks.reportExists = !reportError && !!reportData;
+        diagnostic.checks.reportData = reportData ? {
+          id: reportData.id,
+          job_id: reportData.job_id,
+          created_at: reportData.created_at,
+          updated_at: reportData.updated_at,
+          hasFlowReadings: !!(reportData.flow_readings && reportData.flow_readings.length > 0),
+          hasWaterQuality: !!(reportData.water_quality && Object.keys(reportData.water_quality).length > 0),
+          hasPhotos: !!(reportData.photos && reportData.photos.length > 0),
+          hasNotes: !!reportData.notes,
+        } : null;
+        diagnostic.checks.reportError = reportError ? { message: reportError.message, code: reportError.code } : null;
+      } catch (err) {
+        diagnostic.checks.reportExists = false;
+        diagnostic.checks.reportError = { message: err.message };
+      }
+    } else {
+      diagnostic.checks.supabaseNotAvailable = true;
+    }
+    
+    res.json(diagnostic);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Diagnostic failed', 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // ========== API ROUTES ==========
 
 // Find Report
