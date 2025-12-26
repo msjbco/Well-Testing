@@ -25,8 +25,9 @@ window.calculateFlowResults = function calculateFlowResults() {
     }
   });
 
-  // Calculate % change for each row
+  // Calculate % change and discharged for each row
   readingData.forEach((data, index) => {
+    // Calculate % change
     const percentChangeCell = data.row.querySelector('.flow-percent-change');
     if (percentChangeCell) {
       if (index === 0) {
@@ -48,6 +49,35 @@ window.calculateFlowResults = function calculateFlowResults() {
         } else {
           percentChangeCell.textContent = '--';
         }
+      }
+    }
+    
+    // Calculate discharged for this row
+    const dischargedCell = data.row.querySelector('.flow-discharged');
+    if (dischargedCell) {
+      let discharged = 0;
+      const current = readingData[index];
+      const next = readingData[index + 1];
+      
+      if (current.time !== null && current.gpm > 0) {
+        if (next && next.time !== null) {
+          // Calculate interval time in minutes
+          const intervalMinutes = next.time - current.time;
+          // Gallons for this interval = GPM * minutes
+          discharged = current.gpm * intervalMinutes;
+        } else if (index === readingData.length - 1) {
+          // Last reading: use average interval if we have multiple readings, otherwise default to 15 minutes
+          const avgInterval = readingData.length > 1 
+            ? (current.time - readingData[0].time) / (readingData.length - 1)
+            : 15;
+          discharged = current.gpm * avgInterval;
+        }
+      }
+      
+      if (discharged > 0) {
+        dischargedCell.textContent = discharged.toFixed(0) + ' gal';
+      } else {
+        dischargedCell.textContent = '--';
       }
     }
   });

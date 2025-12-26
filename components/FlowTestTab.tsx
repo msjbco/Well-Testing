@@ -206,7 +206,8 @@ export default function FlowTestTab({
     const volume12hr = currentAverage * 60 * 12; // GPM * 60 min/hr * 12 hr
     const volume24hr = currentAverage * 60 * 24; // GPM * 60 min/hr * 24 hr
     
-    // Calculate total water discharged: sum of (gpm * interval_time) for each interval
+    // Calculate total water discharged: sum of discharged values for each interval
+    // This is calculated by summing (gpm * interval_time) for each reading
     let totalWaterDischarged = 0;
     if (enteredReadings.length > 0) {
       for (let i = 0; i < enteredReadings.length; i++) {
@@ -289,6 +290,9 @@ export default function FlowTestTab({
                 <th className="px-4 py-4 text-left text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
                   GPM
                 </th>
+                <th className="px-4 py-4 text-left text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
+                  Discharged
+                </th>
                 <th className="px-4 py-4 text-center text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
                   % Change
                 </th>
@@ -301,6 +305,29 @@ export default function FlowTestTab({
                 .map((reading, index) => {
                   const readingWithChange = readingsWithPercentChange.find(r => r.time === reading.time);
                   const percentChange = readingWithChange?.percentChange ?? null;
+                  
+                  // Calculate discharged for this reading
+                  const sortedReadings = flowReadings
+                    .filter((r) => (r.time >= 15 && r.time <= 120) || additionalIntervals.includes(r.time))
+                    .sort((a, b) => a.time - b.time);
+                  const currentIndex = sortedReadings.findIndex(r => r.time === reading.time);
+                  const nextReading = sortedReadings[currentIndex + 1];
+                  
+                  let discharged = 0;
+                  if (reading.gpm !== null && reading.gpm > 0 && reading.time !== null) {
+                    if (nextReading && nextReading.time !== null) {
+                      // Calculate interval time in minutes
+                      const intervalMinutes = nextReading.time - reading.time;
+                      // Gallons for this interval = GPM * minutes
+                      discharged = reading.gpm * intervalMinutes;
+                    } else if (currentIndex === sortedReadings.length - 1) {
+                      // Last reading: use average interval if we have multiple readings, otherwise default to 15 minutes
+                      const avgInterval = sortedReadings.length > 1 
+                        ? (reading.time - sortedReadings[0].time) / (sortedReadings.length - 1)
+                        : 15;
+                      discharged = reading.gpm * avgInterval;
+                    }
+                  }
                   
                   return (
                     <tr
@@ -318,9 +345,13 @@ export default function FlowTestTab({
                           placeholder="0.0"
                           step="0.1"
                           min="0"
-                          className="w-full px-4 py-3 text-lg border-2 border-[#2D2E47] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent bg-[#1A1B2C] text-white font-semibold placeholder-gray-500"
+                          className="px-4 py-3 text-lg border-2 border-[#2D2E47] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent bg-[#1A1B2C] text-white font-semibold placeholder-gray-500"
+                          style={{ width: '50%' }}
                           inputMode="decimal"
                         />
+                      </td>
+                      <td className="px-4 py-4 text-lg font-semibold text-[#FF6B35]">
+                        {discharged > 0 ? `${discharged.toFixed(0)} gal` : '--'}
                       </td>
                       <td className="px-4 py-4 text-center text-lg font-semibold">
                         {percentChange !== null ? (
