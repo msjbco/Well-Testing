@@ -812,8 +812,10 @@ app.delete('/api/techs/:id', async (req, res) => {
         
         return res.status(400).json({ 
           error: `Failed to delete tech: ${errorMsg}`,
+          message: errorMsg,
           code: error.code || '',
-          details: error.details || error.hint || ''
+          details: error.details || error.hint || '',
+          status: status || 400
         });
       }
       
