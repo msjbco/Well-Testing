@@ -178,19 +178,24 @@ export default function EditJobPage() {
     setSyncStatus('syncing');
     try {
       // Get current report data to ensure we have latest
-      const { data: currentReport } = await supabase
+      const { data: currentReport, error: fetchError } = await supabase
         .from('well_reports')
         .select('flow_readings, water_quality, photos, notes, recommendations, well_basics, system_equipment')
         .eq('job_id', jobId)
-        .single();
+        .maybeSingle();
 
-      if (!currentReport) {
-        throw new Error('Report not found');
-      }
+      // If report doesn't exist, use current state; otherwise use fetched data
+      const report = currentReport || {
+        flow_readings: reportState.flow_readings || [],
+        water_quality: reportState.water_quality || {},
+        photos: reportState.photos || [],
+        notes: reportState.notes || '',
+        recommendations: reportState.recommendations || '',
+        well_basics: reportState.well_basics || {},
+        system_equipment: reportState.system_equipment || {},
+      } as any;
 
-      const report = currentReport as any;
-
-      // Upsert to ensure everything is synced
+      // Upsert to ensure everything is synced (will create if doesn't exist)
       const { error } = await supabase
         .from('well_reports')
         .upsert(
