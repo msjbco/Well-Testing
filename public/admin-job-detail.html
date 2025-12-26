@@ -419,7 +419,7 @@
           <thead>
             <tr>
               <th>Time (minutes)</th>
-              <th>GPM Reading</th>
+              <th style="text-align:center">GPM Reading</th>
               <th>Dschg</th>
               <th>% Change</th>
               <th style="width:80px">Action</th>
@@ -1968,7 +1968,7 @@
       const gpmValue = gpm !== null ? gpm : '';
       row.innerHTML = `
         <td><input type="number" class="flow-time" step="0.01" value="${timeValue}" placeholder="0.00" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px"></td>
-        <td><input type="number" class="flow-gpm" name="gpm_${rowId}" step="0.01" value="${gpmValue}" placeholder="0.00" style="width:100%;min-width:120px;padding:0.5rem;border:1px solid #ddd;border-radius:4px" onchange="calculateFlowResults()" oninput="calculateFlowResults()"></td>
+        <td style="text-align:center"><input type="number" class="flow-gpm" name="gpm_${rowId}" step="0.01" value="${gpmValue}" placeholder="0.00" style="width:85%;min-width:120px;padding:0.5rem;border:1px solid #ddd;border-radius:4px;margin:0 auto" onchange="calculateFlowResults()" oninput="calculateFlowResults()"></td>
         <td class="flow-discharged" style="padding:0.5rem;text-align:left;font-weight:600;color:var(--green)">--</td>
         <td class="flow-percent-change" style="padding:0.5rem;text-align:center;font-weight:600">--</td>
         <td><button type="button" onclick="removeFlowRow('${rowId}')" style="background:#d32f2f;color:white;border:none;border-radius:4px;padding:0.4rem 0.8rem;cursor:pointer;font-size:0.9rem">Remove</button></td>

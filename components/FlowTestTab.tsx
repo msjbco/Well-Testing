@@ -287,7 +287,7 @@ export default function FlowTestTab({
                 <th className="px-4 py-4 text-left text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
                   Time (min)
                 </th>
-                <th className="px-4 py-4 text-left text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
+                <th className="px-4 py-4 text-center text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
                   GPM
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-semibold text-gray-300 border-b border-[#2D2E47]">
@@ -346,7 +346,7 @@ export default function FlowTestTab({
                           step="0.1"
                           min="0"
                           className="px-4 py-3 text-lg border-2 border-[#2D2E47] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent bg-[#1A1B2C] text-white font-semibold placeholder-gray-500"
-                          style={{ width: '100%', minWidth: '120px' }}
+                          style={{ width: '85%', minWidth: '120px', margin: '0 auto', display: 'block' }}
                           inputMode="decimal"
                         />
                       </td>
