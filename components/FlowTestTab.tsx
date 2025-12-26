@@ -346,12 +346,12 @@ export default function FlowTestTab({
                           step="0.1"
                           min="0"
                           className="px-4 py-3 text-lg border-2 border-[#2D2E47] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B35] focus:border-transparent bg-[#1A1B2C] text-white font-semibold placeholder-gray-500"
-                          style={{ width: '50%' }}
+                          style={{ width: '70%' }}
                           inputMode="decimal"
                         />
                       </td>
                       <td className="px-4 py-4 text-lg font-semibold text-[#FF6B35]">
-                        {discharged > 0 ? `${discharged.toFixed(0)} gal` : '--'}
+                        {discharged > 0 ? discharged.toFixed(0) : '--'}
                       </td>
                       <td className="px-4 py-4 text-center text-lg font-semibold">
                         {percentChange !== null ? (

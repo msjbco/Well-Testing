@@ -75,7 +75,7 @@ window.calculateFlowResults = function calculateFlowResults() {
       }
       
       if (discharged > 0) {
-        dischargedCell.textContent = discharged.toFixed(0) + ' gal';
+        dischargedCell.textContent = discharged.toFixed(0);
       } else {
         dischargedCell.textContent = '--';
       }
