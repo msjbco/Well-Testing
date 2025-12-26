@@ -632,11 +632,30 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
         if (error) {
           console.error('Error loading report from Supabase:', error);
         } else if (data) {
-          // Map Supabase format to expected format
+          // Map Supabase format to expected format (with data property for admin site compatibility)
           report = {
             id: data.id,
             jobId: data.job_id,
             job_id: data.job_id,
+            createdAt: data.created_at,
+            created_at: data.created_at,
+            updatedAt: data.updated_at,
+            updated_at: data.updated_at,
+            // Wrap report fields in 'data' property for admin site compatibility
+            data: {
+              flowReadings: data.flow_readings || [],
+              flow_readings: data.flow_readings || [],
+              waterQuality: data.water_quality || {},
+              water_quality: data.water_quality || {},
+              photos: data.photos || [],
+              notes: data.notes || '',
+              recommendations: data.recommendations || '',
+              wellBasics: data.well_basics || {},
+              well_basics: data.well_basics || {},
+              systemEquipment: data.system_equipment || {},
+              system_equipment: data.system_equipment || {},
+            },
+            // Also include fields directly for backward compatibility
             flow_readings: data.flow_readings || [],
             flowReadings: data.flow_readings || [],
             water_quality: data.water_quality || {},
@@ -648,10 +667,6 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
             wellBasics: data.well_basics || {},
             system_equipment: data.system_equipment || {},
             systemEquipment: data.system_equipment || {},
-            created_at: data.created_at,
-            createdAt: data.created_at,
-            updated_at: data.updated_at,
-            updatedAt: data.updated_at,
           };
           console.log(`✅ Loaded report for job ${jobId} from Supabase`);
           return res.json(report);
