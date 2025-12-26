@@ -752,20 +752,62 @@ app.delete('/api/techs/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
+    if (!supabase) {
+      console.error('❌ Supabase client is null - cannot delete tech');
+      return res.status(500).json({ 
+        error: 'Supabase not available. Please check environment variables in Vercel settings.' 
+      });
+    }
+    
+    // Primary: Delete from Supabase
+    try {
+      console.log('🗑️ Attempting to delete tech from Supabase:', id);
+      
+      const { data, error } = await supabase
+        .from('technicians')
+        .delete()
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ Supabase error deleting tech:', error);
+        console.error('   Error code:', error.code);
+        console.error('   Error message:', error.message);
+        console.error('   Error details:', error.details);
+        return res.status(400).json({ 
+          error: `Failed to delete tech: ${error.message}`,
+          details: error.details || error.hint || ''
+        });
+      }
+      
+      if (data || !error) {
+        console.log('✅ Tech deleted successfully from Supabase:', id);
+        return res.json({ success: true });
+      }
+    } catch (supabaseErr) {
+      console.error('❌ Exception deleting tech from Supabase:', supabaseErr);
+      console.error('   Stack:', supabaseErr.stack);
+      return res.status(500).json({ 
+        error: `Failed to delete tech: ${supabaseErr.message}` 
+      });
+    }
+    
+    // Fallback: Try local JSON (development only)
     try {
       const techs = await readDataFile('techs.json');
       const filtered = techs.filter(t => t.id !== id);
-      await writeDataFile('techs.json', filtered);
-    } catch (error) {}
-    
-    if (supabase) {
-      try {
-        await supabase.from('technicians').delete().eq('id', id);
-      } catch (error) {}
+      if (filtered.length < techs.length) {
+        await writeDataFile('techs.json', filtered);
+        return res.json({ success: true });
+      }
+      return res.status(404).json({ error: 'Tech not found' });
+    } catch (localErr) {
+      // File system not available (expected on Vercel)
+      return res.status(500).json({ error: 'Failed to delete tech. Supabase not available.' });
     }
-    
-    res.json({ success: true });
   } catch (error) {
+    console.error('Error in DELETE /api/techs/:id:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
