@@ -441,7 +441,7 @@
       if (failedJobs.length > 0) {
         const failedJobsInfo = failedJobs.map(j => ({
           id: j.id,
-          address: j.propertyAddress || 'No address',
+          address: j.address || j.propertyAddress || 'No address',
           city: j.city || 'No city',
           zip: j.zip || 'No zip'
         }));
