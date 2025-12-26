@@ -17,6 +17,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Check if Supabase is configured
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        toast.error('Supabase not configured. Please check environment variables.');
+        console.error('Missing Supabase environment variables:', {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseKey
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,7 +45,13 @@ export default function LoginPage() {
         router.refresh(); // Refresh to ensure auth state is updated
       }, 100);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login');
+      console.error('Login error:', error);
+      // Provide more helpful error messages
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        toast.error('Connection failed. Check your internet connection and Supabase configuration.');
+      } else {
+        toast.error(error.message || 'Failed to login');
+      }
     } finally {
       setLoading(false);
     }
