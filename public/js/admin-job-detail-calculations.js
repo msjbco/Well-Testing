@@ -109,10 +109,10 @@ window.calculateFlowResults = function calculateFlowResults() {
     const volume24hr = averageFlowRate * 1440; // gallons
     
     const volume12hrEl = document.getElementById('volume12hr');
-    if (volume12hrEl) volume12hrEl.textContent = volume12hr.toFixed(0) + ' gal';
+    if (volume12hrEl) volume12hrEl.textContent = volume12hr.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' gal';
     
     const volume24hrEl = document.getElementById('volume24hr');
-    if (volume24hrEl) volume24hrEl.textContent = volume24hr.toFixed(0) + ' gal';
+    if (volume24hrEl) volume24hrEl.textContent = volume24hr.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' gal';
     
     // Calculate total water discharged during test (sum of GPM * time intervals)
     let totalWaterDischarged = 0;
@@ -135,7 +135,7 @@ window.calculateFlowResults = function calculateFlowResults() {
     }
     const totalWaterEl = document.getElementById('totalWaterDischarged');
     if (totalWaterEl) {
-      totalWaterEl.textContent = totalWaterDischarged.toFixed(0) + ' gallons';
+      totalWaterEl.textContent = totalWaterDischarged.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' gallons';
     }
     
     // % Change for final 3 readings
