@@ -650,7 +650,7 @@
               <div class="job-info">
                 <div class="job-info-item">
                   <div class="job-info-label">Client Name</div>
-                  <div class="job-info-value">${job.name || 'N/A'}</div>
+                  <div class="job-info-value">${job.client_name || job.name || 'N/A'}</div>
                 </div>
                 <div class="job-info-item">
                   <div class="job-info-label">County</div>
@@ -658,7 +658,7 @@
                 </div>
                 <div class="job-info-item">
                   <div class="job-info-label">Role</div>
-                  <div class="job-info-value">${job.userRole || 'N/A'}</div>
+                  <div class="job-info-value">${job.role || job.userRole || 'N/A'}</div>
                 </div>
                 <div class="job-info-item">
                   <div class="job-info-label">Well Permit #</div>
