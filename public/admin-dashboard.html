@@ -722,7 +722,7 @@
                   </div>
                 </div>
                 ${hasReport 
-                  ? `<a href="admin-report-preview.html?reportId=${report.id}" class="btn-create-report" style="background:var(--brown)">View Report</a>`
+                  ? `<a href="admin-report-preview.html?reportId=${report.id}&jobId=${jobId}" class="btn-create-report" style="background:var(--brown)">View Report</a>`
                   : `<a href="admin-job-detail.html?jobId=${jobId}" class="btn-create-report">Create Report</a>`
                 }
                 ${!job.archived 

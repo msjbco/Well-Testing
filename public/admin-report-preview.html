@@ -501,6 +501,7 @@
     // Get report ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const reportId = urlParams.get('reportId');
+    const jobId = urlParams.get('jobId');
 
     if (!reportId) {
       document.getElementById('reportContent').innerHTML = `
@@ -569,27 +570,57 @@
         try {
           let report;
           try {
-            console.log('Loading report with ID:', reportId);
-            report = await window.reportsAPI.getById(reportId);
-            console.log('Report loaded from API:', report);
+            // Try loading by reportId first
+            if (reportId) {
+              console.log('Loading report with ID:', reportId);
+              report = await window.reportsAPI.getById(reportId);
+              console.log('Report loaded from API by ID:', report);
+            }
           } catch (error) {
-            console.error('Error loading report from API:', error);
+            console.error('Error loading report by ID from API:', error);
             console.error('Error details:', error.message, error.status);
-            // If it's a 404, the report doesn't exist - don't try localStorage
-            if (error.status === 404) {
+            
+            // If reportId failed and we have a jobId, try loading by jobId
+            if (error.status === 404 && jobId) {
+              console.log('Report not found by ID, trying to load by jobId:', jobId);
+              try {
+                report = await window.reportsAPI.getByJobId(jobId);
+                console.log('Report loaded from API by jobId:', report);
+                // If we got a report by jobId, update the reportId in the URL
+                if (report && report.id) {
+                  const newUrl = new URL(window.location);
+                  newUrl.searchParams.set('reportId', report.id);
+                  window.history.replaceState({}, '', newUrl);
+                }
+              } catch (jobIdError) {
+                console.error('Error loading report by jobId:', jobIdError);
+                // If both fail, show error
+                document.getElementById('reportContent').innerHTML = `
+                  <div class="report-section">
+                    <p style="color:var(--gray);text-align:center">Report not found. The report may not have been saved yet.</p>
+                    <p style="color:var(--gray);text-align:center;margin-top:1rem">
+                      <a href="admin-job-detail.html?jobId=${jobId}" style="color:var(--green);text-decoration:underline">Go to job detail to create report</a>
+                    </p>
+                  </div>
+                `;
+                return;
+              }
+            } else if (error.status === 404) {
+              // No jobId to try, show error
               document.getElementById('reportContent').innerHTML = `
                 <div class="report-section">
                   <p style="color:var(--gray);text-align:center">Report not found. The report may not have been saved yet.</p>
                 </div>
               `;
               return;
-            }
-            console.warn('API unavailable, trying localStorage fallback:', error);
-            // Fallback to localStorage only for network errors
-            const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
-            report = reports.find(r => r.id === reportId);
-            if (!report) {
-              throw new Error('Report not found in localStorage');
+            } else {
+              // Network error - try localStorage fallback
+              console.warn('API unavailable, trying localStorage fallback:', error);
+              const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
+              report = reports.find(r => r.id === reportId);
+              if (!report) {
+                throw new Error('Report not found in localStorage');
+              }
             }
           }
           
