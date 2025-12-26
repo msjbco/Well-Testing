@@ -569,10 +569,23 @@
         try {
           let report;
           try {
+            console.log('Loading report with ID:', reportId);
             report = await window.reportsAPI.getById(reportId);
+            console.log('Report loaded from API:', report);
           } catch (error) {
+            console.error('Error loading report from API:', error);
+            console.error('Error details:', error.message, error.status);
+            // If it's a 404, the report doesn't exist - don't try localStorage
+            if (error.status === 404) {
+              document.getElementById('reportContent').innerHTML = `
+                <div class="report-section">
+                  <p style="color:var(--gray);text-align:center">Report not found. The report may not have been saved yet.</p>
+                </div>
+              `;
+              return;
+            }
             console.warn('API unavailable, trying localStorage fallback:', error);
-            // Fallback to localStorage
+            // Fallback to localStorage only for network errors
             const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
             report = reports.find(r => r.id === reportId);
             if (!report) {
@@ -580,13 +593,27 @@
             }
           }
           
-          if (!report || !report.data) {
+          // Handle case where report doesn't have data property (new format from API)
+          if (!report) {
             document.getElementById('reportContent').innerHTML = `
               <div class="report-section">
                 <p style="color:var(--gray);text-align:center">Report not found.</p>
               </div>
             `;
             return;
+          }
+          
+          // If report doesn't have .data property, create it from the report itself
+          if (!report.data) {
+            report.data = {
+              flowReadings: report.flow_readings || report.flowReadings || [],
+              waterQuality: report.water_quality || report.waterQuality || {},
+              photos: report.photos || [],
+              notes: report.notes || '',
+              recommendations: report.recommendations || '',
+              wellBasics: report.well_basics || report.wellBasics || {},
+              systemEquipment: report.system_equipment || report.systemEquipment || {},
+            };
           }
 
           // Load job data
