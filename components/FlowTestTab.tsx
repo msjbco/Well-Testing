@@ -431,19 +431,19 @@ export default function FlowTestTab({
           <div className="flex justify-between items-center py-2 border-b border-[#2D2E47]">
             <span className="text-gray-300 font-medium">Volume Yield (12 hr):</span>
             <span className="text-2xl font-bold text-[#FF6B35]">
-              {volume12hr > 0 ? `${volume12hr.toFixed(0)} gal` : '--'}
+              {volume12hr > 0 ? `${volume12hr.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} gal` : '--'}
             </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-[#2D2E47]">
             <span className="text-gray-300 font-medium">Volume Yield (24 hr):</span>
             <span className="text-2xl font-bold text-[#FF6B35]">
-              {volume24hr > 0 ? `${volume24hr.toFixed(0)} gal` : '--'}
+              {volume24hr > 0 ? `${volume24hr.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} gal` : '--'}
             </span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-[#2D2E47]">
             <span className="text-gray-300 font-medium">Total Water Discharged:</span>
             <span className="text-2xl font-bold text-[#4CAF50]">
-              {totalWaterDischarged > 0 ? `${totalWaterDischarged.toFixed(0)} gal` : '--'}
+              {totalWaterDischarged > 0 ? `${totalWaterDischarged.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} gal` : '--'}
             </span>
           </div>
           
