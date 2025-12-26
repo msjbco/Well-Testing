@@ -474,33 +474,62 @@ app.delete('/api/jobs/:id', async (req, res) => {
 app.get('/api/reports', async (req, res) => {
   try {
     let reports = [];
-    try {
-      reports = await readDataFile('reports.json');
-    } catch (error) {}
     
+    // Primary: Get reports from Supabase (this is what works on Vercel)
     if (supabase) {
       try {
-        const { data } = await supabase.from('well_reports').select('*').order('created_at', { ascending: false });
-        if (data) {
+        const { data, error } = await supabase
+          .from('well_reports')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error loading reports from Supabase:', error);
+        } else if (data && data.length > 0) {
+          // Map Supabase format to expected format
           reports = data.map(r => ({
             id: r.id,
             jobId: r.job_id,
-            flow_readings: r.flow_readings,
-            water_quality: r.water_quality,
-            photos: r.photos,
-            notes: r.notes,
-            recommendations: r.recommendations,
-            well_basics: r.well_basics,
-            system_equipment: r.system_equipment,
+            job_id: r.job_id,
+            flow_readings: r.flow_readings || [],
+            flowReadings: r.flow_readings || [],
+            water_quality: r.water_quality || {},
+            waterQuality: r.water_quality || {},
+            photos: r.photos || [],
+            notes: r.notes || '',
+            recommendations: r.recommendations || '',
+            well_basics: r.well_basics || {},
+            wellBasics: r.well_basics || {},
+            system_equipment: r.system_equipment || {},
+            systemEquipment: r.system_equipment || {},
             created_at: r.created_at,
+            createdAt: r.created_at,
             updated_at: r.updated_at,
+            updatedAt: r.updated_at,
           }));
+          console.log(`✅ Loaded ${reports.length} reports from Supabase`);
+          return res.json(reports);
         }
-      } catch (error) {}
+      } catch (supabaseErr) {
+        console.error('Supabase error loading reports:', supabaseErr);
+      }
     }
     
-    res.json(reports);
+    // Fallback: Try local JSON (development only)
+    try {
+      const localReports = await readDataFile('reports.json');
+      if (localReports && localReports.length > 0) {
+        console.log(`✅ Loaded ${localReports.length} reports from local JSON`);
+        return res.json(localReports);
+      }
+    } catch (localErr) {
+      console.log('Local file system not available (expected on Vercel)');
+    }
+    
+    console.log('⚠️ No reports found in Supabase or local storage');
+    res.json([]);
   } catch (error) {
+    console.error('Error in /api/reports:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -548,35 +577,63 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
     const { jobId } = req.params;
     let report = null;
     
-    try {
-      const reports = await readDataFile('reports.json');
-      report = reports.find(r => r.jobId === jobId);
-    } catch (error) {}
-    
-    if (!report && supabase) {
+    // Primary: Get report from Supabase (this is what works on Vercel)
+    if (supabase) {
       try {
-        const { data } = await supabase.from('well_reports').select('*').eq('job_id', jobId).single();
-        if (data) {
+        const { data, error } = await supabase
+          .from('well_reports')
+          .select('*')
+          .eq('job_id', jobId)
+          .single();
+        
+        if (error) {
+          console.error('Error loading report from Supabase:', error);
+        } else if (data) {
+          // Map Supabase format to expected format
           report = {
             id: data.id,
             jobId: data.job_id,
-            flow_readings: data.flow_readings,
-            water_quality: data.water_quality,
-            photos: data.photos,
-            notes: data.notes,
-            recommendations: data.recommendations,
-            well_basics: data.well_basics,
-            system_equipment: data.system_equipment,
+            job_id: data.job_id,
+            flow_readings: data.flow_readings || [],
+            flowReadings: data.flow_readings || [],
+            water_quality: data.water_quality || {},
+            waterQuality: data.water_quality || {},
+            photos: data.photos || [],
+            notes: data.notes || '',
+            recommendations: data.recommendations || '',
+            well_basics: data.well_basics || {},
+            wellBasics: data.well_basics || {},
+            system_equipment: data.system_equipment || {},
+            systemEquipment: data.system_equipment || {},
             created_at: data.created_at,
+            createdAt: data.created_at,
             updated_at: data.updated_at,
+            updatedAt: data.updated_at,
           };
+          console.log(`✅ Loaded report for job ${jobId} from Supabase`);
+          return res.json(report);
         }
-      } catch (error) {}
+      } catch (supabaseErr) {
+        console.error('Supabase error loading report:', supabaseErr);
+      }
     }
     
-    if (!report) return res.status(404).json({ error: 'Report not found for this job' });
-    res.json(report);
+    // Fallback: Try local JSON (development only)
+    try {
+      const reports = await readDataFile('reports.json');
+      report = reports.find(r => r.jobId === jobId);
+      if (report) {
+        console.log(`✅ Loaded report for job ${jobId} from local JSON`);
+        return res.json(report);
+      }
+    } catch (error) {
+      console.log('Local file system not available (expected on Vercel)');
+    }
+    
+    console.log(`⚠️ No report found for job ${jobId}`);
+    return res.status(404).json({ error: 'Report not found for this job' });
   } catch (error) {
+    console.error('Error in /api/reports/job/:jobId:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
