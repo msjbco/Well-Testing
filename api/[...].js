@@ -205,25 +205,69 @@ app.post('/api/find-report', async (req, res) => {
 app.get('/api/jobs', async (req, res) => {
   try {
     let jobs = [];
-    try {
-      jobs = await readDataFile('jobs.json');
-    } catch (error) {}
     
+    // Primary: Get jobs from Supabase (this is what works on Vercel)
     if (supabase) {
       try {
-        const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
-        if (data) {
-          for (const supJob of data) {
-            if (!jobs.find(j => j.id === supJob.id)) {
-              jobs.push(supJob);
-            }
-          }
+        const { data, error } = await supabase.from('jobs').select('*').order('created_at', { ascending: false });
+        if (error) {
+          console.error('Error loading jobs from Supabase:', error);
+        } else if (data && data.length > 0) {
+          // Map Supabase format to expected format
+          jobs = data.map(job => ({
+            id: job.id,
+            address: job.address || null,
+            name: job.client_name || job.name || null,
+            client_name: job.client_name || job.name || null,
+            firstName: job.firstName || null,
+            lastName: job.lastName || null,
+            email: job.email || null,
+            phone: job.phone || null,
+            city: job.city || null,
+            state: job.state || null,
+            zip: job.zip || null,
+            county: job.county || null,
+            role: job.role || null,
+            userRole: job.role || null,
+            notes: job.notes || null,
+            wellPermitNumber: job.wellPermitNumber || job.well_permit_number || null,
+            hasCistern: job.hasCistern || null,
+            equipmentInspection: job.equipmentInspection || null,
+            willBePresent: job.willBePresent || null,
+            accessInstructions: job.accessInstructions || null,
+            scheduledDate: job.scheduledDate || job.scheduled_date || null,
+            status: job.status || 'pending',
+            assignedTechId: job.assigned_tech_id || job.assignedTechId || null,
+            assigned_tech_id: job.assigned_tech_id || job.assignedTechId || null,
+            archived: job.archived || false,
+            created_at: job.created_at,
+            createdAt: job.created_at,
+            updated_at: job.updated_at,
+            updatedAt: job.updated_at,
+          }));
+          console.log(`✅ Loaded ${jobs.length} jobs from Supabase`);
+          return res.json(jobs);
         }
-      } catch (error) {}
+      } catch (supabaseErr) {
+        console.error('Supabase error loading jobs:', supabaseErr);
+      }
     }
     
-    res.json(jobs);
+    // Fallback: Try local JSON (development only)
+    try {
+      const localJobs = await readDataFile('jobs.json');
+      if (localJobs && localJobs.length > 0) {
+        console.log(`✅ Loaded ${localJobs.length} jobs from local JSON`);
+        return res.json(localJobs);
+      }
+    } catch (localErr) {
+      console.log('Local file system not available (expected on Vercel)');
+    }
+    
+    console.log('⚠️ No jobs found in Supabase or local storage');
+    res.json([]);
   } catch (error) {
+    console.error('Error in /api/jobs:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -255,25 +299,125 @@ app.get('/api/jobs/:id', async (req, res) => {
 app.post('/api/jobs', async (req, res) => {
   try {
     const newJob = req.body;
-    if (!newJob.id) newJob.id = `job-${Date.now()}`;
-    newJob.created_at = new Date().toISOString();
-    newJob.updated_at = new Date().toISOString();
+    const now = new Date().toISOString();
+    
+    // Prepare job data for Supabase
+    const supabaseJob = {
+      address: newJob.propertyAddress || newJob.address || null,
+      client_name: newJob.client_name || newJob.name || null,
+      firstName: newJob.firstName || null,
+      lastName: newJob.lastName || null,
+      email: newJob.email || null,
+      phone: newJob.phone || null,
+      city: newJob.city || null,
+      state: newJob.state || null,
+      zip: newJob.zip || null,
+      county: newJob.county || null,
+      role: newJob.userRole || newJob.role || null,
+      notes: newJob.notes || null,
+      wellPermitNumber: newJob.wellPermitNumber || null,
+      hasCistern: newJob.hasCistern || null,
+      equipmentInspection: newJob.equipmentInspection || null,
+      willBePresent: newJob.willBePresent || null,
+      accessInstructions: newJob.accessInstructions || null,
+      scheduledDate: newJob.scheduledDate || null,
+      status: newJob.status || 'pending',
+      assigned_tech_id: newJob.assignedTechId || newJob.assigned_tech_id || null,
+      archived: newJob.archived || false,
+      created_at: newJob.created_at || now,
+      updated_at: now,
+    };
+    
+    // Primary: Save to Supabase first (this is what works on Vercel)
+    if (!supabase) {
+      console.error('❌ Supabase client is null - cannot create job');
+      return res.status(500).json({ 
+        error: 'Supabase not available. Please check environment variables in Vercel settings.' 
+      });
+    }
     
     try {
+      console.log('📝 Attempting to create job in Supabase:', {
+        address: supabaseJob.address,
+        client_name: supabaseJob.client_name,
+        status: supabaseJob.status
+      });
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert(supabaseJob)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ Supabase error creating job:', error);
+        console.error('   Error code:', error.code);
+        console.error('   Error message:', error.message);
+        console.error('   Error details:', error.details);
+        return res.status(400).json({ 
+          error: `Failed to create job: ${error.message}`,
+          details: error.details || error.hint || ''
+        });
+      }
+      
+      if (data) {
+        console.log('✅ Job created successfully in Supabase:', data.id);
+        // Map back to expected format
+        const createdJob = {
+          id: data.id,
+          address: data.address || null,
+          name: data.client_name || null,
+          client_name: data.client_name || null,
+          firstName: data.firstName || null,
+          lastName: data.lastName || null,
+          email: data.email || null,
+          phone: data.phone || null,
+          city: data.city || null,
+          state: data.state || null,
+          zip: data.zip || null,
+          county: data.county || null,
+          role: data.role || null,
+          userRole: data.role || null,
+          notes: data.notes || null,
+          wellPermitNumber: data.wellPermitNumber || null,
+          hasCistern: data.hasCistern || null,
+          equipmentInspection: data.equipmentInspection || null,
+          willBePresent: data.willBePresent || null,
+          accessInstructions: data.accessInstructions || null,
+          scheduledDate: data.scheduledDate || null,
+          status: data.status || 'pending',
+          assignedTechId: data.assigned_tech_id || null,
+          assigned_tech_id: data.assigned_tech_id || null,
+          archived: data.archived || false,
+          created_at: data.created_at,
+          createdAt: data.created_at,
+          updated_at: data.updated_at,
+          updatedAt: data.updated_at,
+        };
+        return res.status(201).json(createdJob);
+      }
+    } catch (supabaseErr) {
+      console.error('❌ Exception creating job in Supabase:', supabaseErr);
+      console.error('   Stack:', supabaseErr.stack);
+      return res.status(500).json({ 
+        error: `Failed to create job: ${supabaseErr.message}` 
+      });
+    }
+    
+    // Fallback: Save to local JSON (development only)
+    try {
+      if (!newJob.id) newJob.id = `job-${Date.now()}`;
+      newJob.created_at = now;
+      newJob.updated_at = now;
       const jobs = await readDataFile('jobs.json');
       jobs.push(newJob);
       await writeDataFile('jobs.json', jobs);
-    } catch (error) {}
-    
-    if (supabase) {
-      try {
-        const { data } = await supabase.from('jobs').insert(newJob).select().single();
-        if (data) newJob.id = data.id;
-      } catch (error) {}
+      return res.status(201).json(newJob);
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to create job. Supabase not available.' });
     }
-    
-    res.status(201).json(newJob);
   } catch (error) {
+    console.error('Error in POST /api/jobs:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
