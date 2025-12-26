@@ -185,14 +185,14 @@ export default function EditJobPage() {
         .maybeSingle();
 
       // If report doesn't exist, use current state; otherwise use fetched data
-      const report = currentReport || {
-        flow_readings: reportState.flow_readings || [],
-        water_quality: reportState.water_quality || {},
-        photos: reportState.photos || [],
-        notes: reportState.notes || '',
-        recommendations: reportState.recommendations || '',
-        well_basics: reportState.well_basics || {},
-        system_equipment: reportState.system_equipment || {},
+      const reportData = currentReport || report || {
+        flow_readings: [],
+        water_quality: {},
+        photos: [],
+        notes: '',
+        recommendations: '',
+        well_basics: {},
+        system_equipment: {},
       } as any;
 
       // Upsert to ensure everything is synced (will create if doesn't exist)
@@ -201,13 +201,13 @@ export default function EditJobPage() {
         .upsert(
           {
             job_id: jobId,
-            flow_readings: report.flow_readings || [],
-            water_quality: report.water_quality || {},
-            photos: report.photos || [],
-            notes: report.notes || '',
-            recommendations: report.recommendations || '',
-            well_basics: report.well_basics || {},
-            system_equipment: report.system_equipment || {},
+            flow_readings: reportData.flow_readings || [],
+            water_quality: reportData.water_quality || {},
+            photos: reportData.photos || [],
+            notes: reportData.notes || '',
+            recommendations: reportData.recommendations || '',
+            well_basics: reportData.well_basics || {},
+            system_equipment: reportData.system_equipment || {},
             updated_at: new Date().toISOString(),
           } as any,
           { onConflict: 'job_id' }
