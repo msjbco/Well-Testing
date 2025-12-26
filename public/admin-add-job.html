@@ -640,7 +640,7 @@
 
         <div class="form-actions" style="margin-top: 2rem">
           <button type="button" onclick="goBackToJobInfo()" class="btn-cancel">← Back</button>
-          <button type="button" onclick="createJob()" class="btn" style="flex:1">Create Job</button>
+          <button type="button" id="createJobButton" onclick="createJob()" class="btn" style="flex:1">Create Job</button>
         </div>
       </div>
     </div>
@@ -895,6 +895,9 @@
       document.querySelector('.form-box:first-of-type').style.display = 'none';
       document.getElementById('servicesPage').style.display = 'block';
       
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       // Calculate initial total
       calculateTotal();
     }
@@ -902,6 +905,8 @@
     function goBackToJobInfo() {
       document.getElementById('servicesPage').style.display = 'none';
       document.querySelector('.form-box:first-of-type').style.display = 'block';
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function calculateTotal() {
@@ -929,46 +934,72 @@
     }
 
     async function createJob() {
-      // Validate required fields from first page
-      const form = document.getElementById('addJobForm');
-      if (!form.checkValidity()) {
-        alert('Please fill in all required fields on the first page.');
-        goBackToJobInfo();
-        form.reportValidity();
-        return;
-      }
-
-      // Validate "other" role if selected
-      const userRole = document.getElementById('userRole').value;
-      if (userRole === 'other') {
-        const otherRoleText = document.getElementById('otherRoleText').value.trim();
-        if (!otherRoleText) {
-          alert('Please specify the role.');
-          goBackToJobInfo();
-          return;
-        }
-      }
-
-      // Validate access instructions if needed
-      const willBePresent = document.querySelector('input[name="willBePresent"]:checked');
-      if (willBePresent && willBePresent.value === 'no') {
-        const accessInstructions = document.getElementById('accessInstructions').value.trim();
-        if (!accessInstructions) {
-          alert('Please provide access instructions.');
-          goBackToJobInfo();
-          document.getElementById('accessInstructionsGroup').style.display = 'block';
-          return;
-        }
-      }
-
-      // Validate at least one service is selected
-      const mainService = document.querySelector('input[name="mainService"]:checked');
-      const waterTests = document.querySelectorAll('input[name="waterTest"]:checked');
+      console.log('createJob() called');
       
-      if (!mainService && waterTests.length === 0) {
-        alert('Please select at least one service.');
-        return;
+      // Disable button to prevent double-clicks
+      const createButton = document.getElementById('createJobButton');
+      if (createButton) {
+        createButton.disabled = true;
+        createButton.textContent = 'Creating...';
       }
+
+      try {
+        // Validate required fields from first page
+        const form = document.getElementById('addJobForm');
+        if (!form.checkValidity()) {
+          alert('Please fill in all required fields on the first page.');
+          goBackToJobInfo();
+          form.reportValidity();
+          if (createButton) {
+            createButton.disabled = false;
+            createButton.textContent = 'Create Job';
+          }
+          return;
+        }
+
+        // Validate "other" role if selected
+        const userRole = document.getElementById('userRole').value;
+        if (userRole === 'other') {
+          const otherRoleText = document.getElementById('otherRoleText').value.trim();
+          if (!otherRoleText) {
+            alert('Please specify the role.');
+            goBackToJobInfo();
+            if (createButton) {
+              createButton.disabled = false;
+              createButton.textContent = 'Create Job';
+            }
+            return;
+          }
+        }
+
+        // Validate access instructions if needed
+        const willBePresent = document.querySelector('input[name="willBePresent"]:checked');
+        if (willBePresent && willBePresent.value === 'no') {
+          const accessInstructions = document.getElementById('accessInstructions').value.trim();
+          if (!accessInstructions) {
+            alert('Please provide access instructions.');
+            goBackToJobInfo();
+            document.getElementById('accessInstructionsGroup').style.display = 'block';
+            if (createButton) {
+              createButton.disabled = false;
+              createButton.textContent = 'Create Job';
+            }
+            return;
+          }
+        }
+
+        // Validate at least one service is selected
+        const mainService = document.querySelector('input[name="mainService"]:checked');
+        const waterTests = document.querySelectorAll('input[name="waterTest"]:checked');
+        
+        if (!mainService && waterTests.length === 0) {
+          alert('Please select at least one service.');
+          if (createButton) {
+            createButton.disabled = false;
+            createButton.textContent = 'Create Job';
+          }
+          return;
+        }
 
       // Gather form data
       const accessInstructions = document.getElementById('accessInstructions');
@@ -1019,13 +1050,23 @@
         createdBy: 'admin'
       };
 
-      try {
+        console.log('Job data to send:', jobData);
+        
+        // Check if jobsAPI is available
+        if (!window.jobsAPI) {
+          throw new Error('Jobs API is not available. Please refresh the page.');
+        }
+
         // Create job via API
-        await window.jobsAPI.create(jobData);
+        console.log('Calling jobsAPI.create...');
+        const result = await window.jobsAPI.create(jobData);
+        console.log('Job created successfully:', result);
 
         // Show success toast
         const toast = document.getElementById('toast');
-        toast.classList.add('show');
+        if (toast) {
+          toast.classList.add('show');
+        }
         
         // Redirect to dashboard after a short delay
         setTimeout(() => {
@@ -1033,7 +1074,13 @@
         }, 1500);
       } catch (error) {
         console.error('Error creating job:', error);
-        alert('Failed to create job: ' + error.message);
+        console.error('Error stack:', error.stack);
+        const errorMessage = error.message || 'Unknown error occurred';
+        alert('Failed to create job: ' + errorMessage);
+        if (createButton) {
+          createButton.disabled = false;
+          createButton.textContent = 'Create Job';
+        }
       }
     }
 
