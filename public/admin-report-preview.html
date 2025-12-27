@@ -579,10 +579,11 @@
           } catch (error) {
             console.error('Error loading report by ID from API:', error);
             console.error('Error details:', error.message, error.status);
+            console.error('Full error object:', error);
             
-            // If reportId failed and we have a jobId, try loading by jobId
-            if (error.status === 404 && jobId) {
-              console.log('Report not found by ID, trying to load by jobId:', jobId);
+            // Always try loading by jobId if we have one (regardless of error type)
+            if (jobId) {
+              console.log('Trying to load report by jobId as fallback:', jobId);
               try {
                 report = await window.reportsAPI.getByJobId(jobId);
                 console.log('Report loaded from API by jobId:', report);
@@ -594,6 +595,7 @@
                 }
               } catch (jobIdError) {
                 console.error('Error loading report by jobId:', jobIdError);
+                console.error('JobId error details:', jobIdError.message, jobIdError.status);
                 // If both fail, show error
                 document.getElementById('reportContent').innerHTML = `
                   <div class="report-section">
@@ -601,11 +603,14 @@
                     <p style="color:var(--gray);text-align:center;margin-top:1rem">
                       <a href="admin-job-detail.html?jobId=${jobId}" style="color:var(--green);text-decoration:underline">Go to job detail to create report</a>
                     </p>
+                    <p style="color:var(--gray);text-align:center;margin-top:1rem;font-size:0.9rem">
+                      Debug: Report ID: ${reportId || 'none'}, Job ID: ${jobId || 'none'}
+                    </p>
                   </div>
                 `;
                 return;
               }
-            } else if (error.status === 404) {
+            } else if (error.status === 404 || !error.status) {
               // No jobId to try, show error
               document.getElementById('reportContent').innerHTML = `
                 <div class="report-section">

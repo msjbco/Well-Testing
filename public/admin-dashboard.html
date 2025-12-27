@@ -526,9 +526,12 @@
         // Also load reports to check which jobs have reports
         let reports = [];
         try {
+          console.log('Loading reports from API...');
           reports = await window.reportsAPI.getAll();
+          console.log(`Loaded ${reports.length} reports from API:`, reports);
         } catch (error) {
-          console.warn('Could not load reports:', error);
+          console.error('Could not load reports:', error);
+          console.error('Error details:', error.message, error.status);
         }
         
         // Create a map of jobId to report for quick lookup
@@ -536,8 +539,12 @@
         reports.forEach(report => {
           if (report.jobId) {
             reportMap[report.jobId] = report;
+            console.log(`Mapped report ${report.id} to job ${report.jobId}`);
+          } else {
+            console.warn('Report without jobId:', report);
           }
         });
+        console.log('Report map created:', Object.keys(reportMap).length, 'reports mapped');
       
         // Filter jobs based on current filter and tech filter
         let filteredJobs = allJobs;
