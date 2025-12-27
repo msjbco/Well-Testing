@@ -539,7 +539,9 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// Reports API (simplified - similar pattern)
+// Reports API - DISABLED: Now handled by Next.js API routes in app/api/reports/
+// Keeping this commented out in case we need to revert
+/*
 app.get('/api/reports', async (req, res) => {
   try {
     let reports = [];
@@ -601,9 +603,10 @@ app.get('/api/reports', async (req, res) => {
     console.error('Error in /api/reports:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}); */
 
-app.get('/api/reports/:id', async (req, res) => {
+// DISABLED: Now handled by Next.js API route at app/api/reports/[id]/route.ts
+// app.get('/api/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
     let report = null;
@@ -688,9 +691,10 @@ app.get('/api/reports/:id', async (req, res) => {
     console.error('Error in /api/reports/:id:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}); */
 
-app.get('/api/reports/job/:jobId', async (req, res) => {
+// DISABLED: Now handled by Next.js API route at app/api/reports/job/[jobId]/route.ts
+// app.get('/api/reports/job/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
     let report = null;
