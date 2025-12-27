@@ -337,10 +337,35 @@ window.jobsAPI = {
   delete: jobsAPI.delete
 };
 
+// Fallback for reports getByJobId
+async function reportsAPIGetByJobIdWithFallback(jobId) {
+  try {
+    return await reportsAPI.getByJobId(jobId);
+  } catch (error) {
+    const errorMsg = error.message || error.toString() || '';
+    if (errorMsg === 'API_UNAVAILABLE' || 
+        errorMsg.includes('Failed to fetch') || 
+        errorMsg.includes('NetworkError') ||
+        errorMsg.includes('Network request failed')) {
+      console.warn('Using localStorage fallback for report getByJobId');
+      const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
+      console.log('Reports in localStorage:', reports.length, 'Looking for jobId:', jobId);
+      const report = reports.find(r => r.jobId === jobId || r.job_id === jobId);
+      if (!report) {
+        console.error('Report not found in localStorage. Available jobIds:', reports.map(r => r.jobId || r.job_id));
+        throw new Error('Report not found');
+      }
+      console.log('Report found in localStorage:', report);
+      return report;
+    }
+    throw error;
+  }
+}
+
 window.reportsAPI = {
   getAll: reportsAPIGetAllWithFallback,
   getById: reportsAPIGetByIdWithFallback,
-  getByJobId: reportsAPI.getByJobId,
+  getByJobId: reportsAPIGetByJobIdWithFallback,
   create: reportsAPICreateWithFallback,
   update: reportsAPIUpdateWithFallback,
   delete: reportsAPI.delete
