@@ -1205,9 +1205,19 @@ app.delete('/api/techs/:id', async (req, res) => {
 // Export as Vercel serverless function
 // Vercel expects a handler function that receives (req, res)
 // The file name [...].js means it catches all routes under /api/*
+// BUT: We exclude /api/reports routes to let Next.js handle them
 module.exports = (req, res) => {
-  // Vercel serverless functions need to handle the request/response
-  // Express app can handle this directly
+  // Check if this is a report route - if so, let Next.js handle it
+  const url = req.url || req.path || '';
+  if (url.startsWith('/api/reports/')) {
+    // Return 404 so Next.js routes can handle it
+    // Actually, we should just not handle it at all
+    // But since this is a catch-all, we need to return 404
+    res.status(404).json({ error: 'Not found - handled by Next.js' });
+    return;
+  }
+  
+  // For all other routes, use Express
   return app(req, res);
 };
 
