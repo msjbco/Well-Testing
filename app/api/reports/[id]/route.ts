@@ -6,10 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
     
     // Initialize Supabase
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
