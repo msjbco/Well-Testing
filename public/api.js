@@ -284,16 +284,34 @@ async function jobsAPIGetByIdWithFallback(id) {
     return await jobsAPI.getById(id);
   } catch (error) {
     const errorMsg = error.message || error.toString() || '';
-    if (errorMsg === 'API_UNAVAILABLE' || 
+    // If 404 or API unavailable, try getting all jobs and filtering client-side
+    if (error.status === 404 || 
+        errorMsg === 'API_UNAVAILABLE' || 
         errorMsg.includes('Failed to fetch') || 
         errorMsg.includes('NetworkError') ||
-        errorMsg.includes('Network request failed')) {
-      console.warn('Using localStorage fallback for getById');
+        errorMsg.includes('Network request failed') ||
+        errorMsg.includes('HTTP error! status: 404')) {
+      console.warn('Job by ID endpoint failed, trying to get all jobs and filter:', errorMsg);
+      try {
+        // /api/jobs works, so use it and filter client-side
+        const allJobs = await jobsAPI.getAll();
+        console.log(`Got ${allJobs.length} jobs, filtering for ID: ${id}`);
+        const job = allJobs.find(j => j.id === id);
+        if (job) {
+          console.log('Found job by filtering all jobs:', job.id);
+          return job;
+        }
+        console.error('Job not found in all jobs. Available IDs:', allJobs.map(j => j.id));
+      } catch (fallbackError) {
+        console.error('Failed to get all jobs as fallback:', fallbackError);
+      }
+      
+      // Last resort: localStorage
+      console.warn('Using localStorage fallback for job getById');
       const jobs = JSON.parse(localStorage.getItem('scheduledJobs') || '[]');
-      console.log('Jobs in localStorage:', jobs.length, 'Looking for ID:', id);
       const job = jobs.find(j => j.id === id);
       if (!job) {
-        console.error('Job not found in localStorage. Available IDs:', jobs.map(j => j.id));
+        console.error('Job not found in localStorage for ID:', id);
         throw new Error('Job not found');
       }
       console.log('Job found in localStorage:', job);
