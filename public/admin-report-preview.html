@@ -732,7 +732,31 @@
           
           // Extract water quality from multiple possible locations
           // Check report first (flat format from /api/reports), then data (nested format)
+          // Also check for flat fields directly on report object (PWA saves them directly)
           let waterQuality = report.water_quality || report.waterQuality || data.waterQuality || data.water_quality || {};
+          
+          // PWA saves water quality fields directly on the report object, not nested
+          // Check for flat fields: coliform, ecoli, nitrate, arsenic, lead, iron, manganese, hardness, ph, tds
+          if (Object.keys(waterQuality).length === 0) {
+            // Try to build waterQuality from flat fields on report
+            const flatWaterQuality = {
+              coliform: report.coliform,
+              ecoli: report.ecoli,
+              nitrate: report.nitrate,
+              arsenic: report.arsenic,
+              lead: report.lead,
+              iron: report.iron,
+              manganese: report.manganese,
+              hardness: report.hardness,
+              ph: report.ph,
+              tds: report.tds,
+              overallRating: report.overallRating,
+            };
+            // Only use if at least one field has a value
+            if (Object.values(flatWaterQuality).some(v => v !== undefined && v !== null && v !== '')) {
+              waterQuality = flatWaterQuality;
+            }
+          }
           
           // Extract well basics
           let wellBasics = report.well_basics || report.wellBasics || data.wellBasics || data.well_basics || {};
@@ -757,9 +781,21 @@
           
           // Merge water quality into data for receipt calculation
           // This allows the receipt calculation to access water quality fields directly
+          // Also include flat fields from report object (PWA saves them directly)
           const dataForReceipt = {
             ...data,
             ...waterQuality, // Merge water quality fields into data
+            // Also include flat fields from report if they exist
+            coliform: report.coliform || waterQuality.coliform || data.coliform,
+            ecoli: report.ecoli || waterQuality.ecoli || data.ecoli,
+            nitrate: report.nitrate || waterQuality.nitrate || data.nitrate,
+            arsenic: report.arsenic || waterQuality.arsenic || data.arsenic,
+            lead: report.lead || waterQuality.lead || data.lead,
+            iron: report.iron || waterQuality.iron || data.iron,
+            manganese: report.manganese || waterQuality.manganese || data.manganese,
+            hardness: report.hardness || waterQuality.hardness || data.hardness,
+            ph: report.ph || waterQuality.ph || data.ph,
+            tds: report.tds || waterQuality.tds || data.tds,
           };
           
           console.log('📊 Data structure:', {
@@ -1340,21 +1376,23 @@
           dataKeys: Object.keys(data).filter(k => k.includes('coliform') || k.includes('nitrate') || k.includes('arsenic') || k.includes('lead') || k.includes('iron') || k.includes('manganese') || k.includes('hardness') || k.includes('ph') || k.includes('tds'))
         });
         
-        if (coliformEcoli || ecoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds || overallRating) {
-          reportHTML += `
-            <div class="report-section water-quality-section">
-              <h2>Water Quality</h2>
-              <div class="report-grid">
-          `;
-          if (coliformEcoli || ecoli) {
-            const coliformDisplay = coliformEcoli || ecoli;
+          if (coliform || ecoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds || overallRating) {
             reportHTML += `
-              <div class="report-item">
-                <div class="report-label">Coliform / E.coli</div>
-                <div class="report-value">${coliformDisplay}</div>
-              </div>
+              <div class="report-section water-quality-section">
+                <h2>Water Quality</h2>
+                <div class="report-grid">
             `;
-          }
+            if (coliform || ecoli) {
+              // Display coliform and ecoli together
+              const coliformDisplay = coliform || 'N/A';
+              const ecoliDisplay = ecoli || 'N/A';
+              reportHTML += `
+                <div class="report-item">
+                  <div class="report-label">Coliform / E.coli</div>
+                  <div class="report-value">${coliformDisplay} / ${ecoliDisplay}</div>
+                </div>
+              `;
+            }
           if (nitrate) {
             reportHTML += `
               <div class="report-item">
