@@ -922,34 +922,111 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
 app.post('/api/reports', async (req, res) => {
   try {
     const newReport = req.body;
+    const now = new Date().toISOString();
+    
+    // Handle nested data structure (from admin-job-detail.html) or flat structure
+    const reportData = newReport.data || newReport;
+    const flowReadings = reportData.flowReadings || reportData.flow_readings || [];
+    const waterQuality = reportData.waterQuality || reportData.water_quality || {};
+    const photos = newReport.photos || reportData.photos || [];
+    const notes = reportData.notes || newReport.notes || '';
+    const recommendations = reportData.recommendations || newReport.recommendations || '';
+    const wellBasics = reportData.wellBasics || reportData.well_basics || newReport.wellBasics || newReport.well_basics || {};
+    const systemEquipment = reportData.systemEquipment || reportData.system_equipment || newReport.systemEquipment || newReport.system_equipment || {};
+    
+    // Primary: Save to Supabase (this is what works on Vercel)
+    if (supabase && newReport.jobId) {
+      try {
+        console.log('📝 Creating report in Supabase for job:', newReport.jobId);
+        const { data, error } = await supabase
+          .from('well_reports')
+          .insert({
+            job_id: newReport.jobId,
+            flow_readings: flowReadings,
+            water_quality: waterQuality,
+            photos: photos,
+            notes: notes,
+            recommendations: recommendations,
+            well_basics: wellBasics,
+            system_equipment: systemEquipment,
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('❌ Error creating report in Supabase:', error);
+          console.error('   Error code:', error.code);
+          console.error('   Error message:', error.message);
+          console.error('   Error details:', error.details);
+          return res.status(400).json({ 
+            error: `Failed to create report: ${error.message}`,
+            details: error.details || error.hint || ''
+          });
+        }
+        
+        if (data) {
+          console.log('✅ Report created successfully in Supabase:', data.id);
+          // Map back to expected format
+          const createdReport = {
+            id: data.id,
+            jobId: data.job_id,
+            job_id: data.job_id,
+            flow_readings: data.flow_readings || [],
+            flowReadings: data.flow_readings || [],
+            water_quality: data.water_quality || {},
+            waterQuality: data.water_quality || {},
+            photos: data.photos || [],
+            notes: data.notes || '',
+            recommendations: data.recommendations || '',
+            well_basics: data.well_basics || {},
+            wellBasics: data.well_basics || {},
+            system_equipment: data.system_equipment || {},
+            systemEquipment: data.system_equipment || {},
+            created_at: data.created_at,
+            createdAt: data.created_at,
+            updated_at: data.updated_at,
+            updatedAt: data.updated_at,
+            // Wrap in data property for admin site compatibility
+            data: {
+              flowReadings: data.flow_readings || [],
+              flow_readings: data.flow_readings || [],
+              waterQuality: data.water_quality || {},
+              water_quality: data.water_quality || {},
+              photos: data.photos || [],
+              notes: data.notes || '',
+              recommendations: data.recommendations || '',
+              wellBasics: data.well_basics || {},
+              well_basics: data.well_basics || {},
+              systemEquipment: data.system_equipment || {},
+              system_equipment: data.system_equipment || {},
+            }
+          };
+          return res.status(201).json(createdReport);
+        }
+      } catch (supabaseErr) {
+        console.error('❌ Exception creating report in Supabase:', supabaseErr);
+        console.error('   Stack:', supabaseErr.stack);
+        return res.status(500).json({ 
+          error: `Failed to create report: ${supabaseErr.message}` 
+        });
+      }
+    }
+    
+    // Fallback: Save to local JSON (development only)
     if (!newReport.id) newReport.id = `report-${Date.now()}`;
-    newReport.created_at = new Date().toISOString();
-    newReport.updated_at = new Date().toISOString();
+    newReport.created_at = now;
+    newReport.updated_at = now;
     
     try {
       const reports = await readDataFile('reports.json');
       reports.push(newReport);
       await writeDataFile('reports.json', reports);
-    } catch (error) {}
-    
-    if (supabase && newReport.jobId) {
-      try {
-        const { data } = await supabase.from('well_reports').insert({
-          job_id: newReport.jobId,
-          flow_readings: newReport.flow_readings || [],
-          water_quality: newReport.water_quality || {},
-          photos: newReport.photos || [],
-          notes: newReport.notes || '',
-          recommendations: newReport.recommendations || '',
-          well_basics: newReport.well_basics || {},
-          system_equipment: newReport.system_equipment || {},
-        }).select().single();
-        if (data) newReport.id = data.id;
-      } catch (error) {}
+      return res.status(201).json(newReport);
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to create report. Supabase not available.' });
     }
-    
-    res.status(201).json(newReport);
   } catch (error) {
+    console.error('Error in POST /api/reports:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
