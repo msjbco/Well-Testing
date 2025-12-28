@@ -6,10 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Initialize Supabase with service role key
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
