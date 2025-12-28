@@ -398,16 +398,23 @@ app.post('/api/jobs', async (req, res) => {
       accessInstructions: newJob.accessInstructions || null,
       scheduledDate: newJob.scheduledDate || null,
       status: newJob.status || 'pending',
-      // Validate assigned_tech_id - must be null or a valid UUID that exists in technicians table
+      // Validate assigned_tech_id - must be null or a valid UUID
+      // Convert empty strings, null, undefined, or invalid values to null
       assigned_tech_id: (() => {
         const techId = newJob.assignedTechId || newJob.assigned_tech_id;
-        // If empty string, null, or undefined, set to null
-        if (!techId || techId === '' || techId === 'null' || techId === 'undefined') {
+        // If empty string, null, undefined, or falsy, set to null
+        if (!techId || techId === '' || techId === 'null' || techId === 'undefined' || techId === 'None') {
+          return null;
+        }
+        // Convert to string and trim
+        const techIdStr = String(techId).trim();
+        // Return null if empty after trimming
+        if (!techIdStr) {
           return null;
         }
         // Return the tech ID if it's a valid UUID format
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(techId) ? techId : null;
+        return uuidRegex.test(techIdStr) ? techIdStr : null;
       })(),
       archived: newJob.archived || false,
       created_at: newJob.created_at || now,

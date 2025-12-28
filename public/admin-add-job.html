@@ -1015,7 +1015,16 @@
       });
 
       const assignedTechSelect = document.getElementById('assignedTech');
-      const assignedTechId = assignedTechSelect ? assignedTechSelect.value : null;
+      // Only use assignedTechId if it's a valid UUID, otherwise set to null
+      let assignedTechId = null;
+      if (assignedTechSelect && assignedTechSelect.value) {
+        const value = assignedTechSelect.value.trim();
+        // Check if it's a valid UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (value && uuidRegex.test(value)) {
+          assignedTechId = value;
+        }
+      }
 
       // Get client name from the single name field
       const clientName = document.getElementById('name').value.trim();
