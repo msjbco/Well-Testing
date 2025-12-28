@@ -656,12 +656,25 @@
           let job = null;
           try {
             job = await window.jobsAPI.getById(report.jobId);
+            console.log('✅ Job loaded successfully:', job);
+            console.log('   Job address:', job?.address || job?.propertyAddress);
+            console.log('   Job county:', job?.county);
+            console.log('   Job client_name:', job?.client_name || job?.name);
           } catch (error) {
             console.warn('Could not load job data from API, trying localStorage:', error);
             // Fallback to localStorage
             const jobs = JSON.parse(localStorage.getItem('scheduledJobs') || '[]');
             job = jobs.find(j => j.id === report.jobId);
+            if (job) {
+              console.log('✅ Job found in localStorage:', job);
+            } else {
+              console.error('❌ Job not found in localStorage either');
+            }
           }
+
+          console.log('📊 Final job object before building HTML:', job);
+          console.log('   Has job?', !!job);
+          console.log('   Job keys:', job ? Object.keys(job) : 'null');
 
           const data = report.data;
 
@@ -694,25 +707,35 @@
         let reportHTML = '';
 
         // Job Information
+        const jobAddress = job ? (job.address || job.propertyAddress || 'N/A') : 'N/A';
+        const jobCounty = job ? (job.county || 'N/A') : 'N/A';
+        const jobClientName = job ? (job.client_name || job.name || 'N/A') : 'N/A';
+        
+        console.log('🏗️ Building job info HTML with:', {
+          address: jobAddress,
+          county: jobCounty,
+          clientName: jobClientName
+        });
+        
         reportHTML += `
           <div class="report-section">
             <h2>Job Information</h2>
             <div class="report-grid">
               <div class="report-item">
                 <div class="report-label">Property Address</div>
-                <div class="report-value">${job ? (job.address || job.propertyAddress) : 'N/A'}</div>
+                <div class="report-value">${jobAddress}</div>
               </div>
               <div class="report-item">
                 <div class="report-label">County</div>
-                <div class="report-value">${job ? job.county : 'N/A'}</div>
+                <div class="report-value">${jobCounty}</div>
               </div>
               <div class="report-item">
                 <div class="report-label">Client Name</div>
-                <div class="report-value">${job ? (job.client_name || job.name) : 'N/A'}</div>
+                <div class="report-value">${jobClientName}</div>
               </div>
               <div class="report-item">
                 <div class="report-label">Well Permit #</div>
-                <div class="report-value">${data.wellPermit || 'Not provided'}</div>
+                <div class="report-value">${data.wellPermit || data.wellBasics?.wellPermit || 'Not provided'}</div>
               </div>
             </div>
           </div>
