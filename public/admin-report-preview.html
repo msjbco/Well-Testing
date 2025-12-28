@@ -1307,45 +1307,50 @@
             console.log(jobInfoPreview);
           }
           
-          // Force a re-render by temporarily hiding and showing
-          const reportContentEl = document.getElementById('reportContent');
-          reportContentEl.style.display = 'none';
-          reportContentEl.innerHTML = reportHTML;
-          // Force browser to recalculate layout
-          void reportContentEl.offsetHeight;
-          reportContentEl.style.display = '';
+          // Set HTML
+          document.getElementById('reportContent').innerHTML = reportHTML;
           
-          console.log('✅ HTML set. Verifying job info in DOM:');
+          // Immediately after setting HTML, directly update the job info values
+          // This ensures they're correct even if there's any template string evaluation issue
           setTimeout(() => {
-            const addressEl = document.querySelector('.report-grid .report-value');
-            if (addressEl) {
-              console.log('   First report-value element text:', addressEl.textContent);
-              console.log('   All report-values:', Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent));
-              
-              // If we still see "N/A" in the DOM, something is wrong
-              const allValues = Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent.trim());
-              if (allValues.includes('N/A')) {
-                console.error('❌ ERROR: Still seeing "N/A" in DOM after setting HTML!');
-                console.error('   Values found:', allValues);
-                // Force update by directly setting text content
-                const jobInfoSection = document.querySelector('.report-section h2');
-                if (jobInfoSection && jobInfoSection.textContent === 'Job Information') {
-                  const reportItems = document.querySelectorAll('.report-grid .report-item');
-                  reportItems.forEach((item, index) => {
-                    const valueEl = item.querySelector('.report-value');
-                    if (valueEl && valueEl.textContent.trim() === 'N/A') {
-                      if (index === 0) valueEl.textContent = jobAddress;
-                      else if (index === 1) valueEl.textContent = jobCounty;
-                      else if (index === 2) valueEl.textContent = jobClientName;
-                    }
-                  });
-                  console.log('🔧 Forced update of DOM elements');
+            const jobInfoSection = document.querySelector('.report-section h2');
+            if (jobInfoSection && jobInfoSection.textContent === 'Job Information') {
+              const reportItems = document.querySelectorAll('.report-grid .report-item');
+              if (reportItems.length >= 3) {
+                // Property Address (index 0)
+                const addressValueEl = reportItems[0]?.querySelector('.report-value');
+                if (addressValueEl) {
+                  addressValueEl.textContent = jobAddress;
+                  console.log('🔧 Directly set address:', jobAddress);
                 }
-              } else {
-                console.log('✅ All values are correct in DOM');
+                // County (index 1)
+                const countyValueEl = reportItems[1]?.querySelector('.report-value');
+                if (countyValueEl) {
+                  countyValueEl.textContent = jobCounty;
+                  console.log('🔧 Directly set county:', jobCounty);
+                }
+                // Client Name (index 2)
+                const clientNameValueEl = reportItems[2]?.querySelector('.report-value');
+                if (clientNameValueEl) {
+                  clientNameValueEl.textContent = jobClientName;
+                  console.log('🔧 Directly set client name:', jobClientName);
+                }
               }
             }
-          }, 100);
+            
+            // Verify after direct update
+            const addressEl = document.querySelector('.report-grid .report-value');
+            if (addressEl) {
+              console.log('✅ Final verification - First report-value:', addressEl.textContent);
+              const allValues = Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent.trim());
+              console.log('✅ Final verification - All report-values:', allValues);
+              if (allValues.includes('N/A')) {
+                console.error('❌ ERROR: Still seeing "N/A" after direct update!');
+              } else {
+                console.log('✅ All values are correct after direct update');
+              }
+            }
+          }, 50);
           
           // Store receipt data for modal
           window.receiptData = { job, data, lineItems, total };
