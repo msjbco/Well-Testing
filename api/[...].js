@@ -353,21 +353,74 @@ app.get('/api/jobs/:id', async (req, res) => {
     const { id } = req.params;
     let job = null;
     
+    // Primary: Get job from Supabase (this is what works on Vercel)
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('jobs').select('*').eq('id', id).single();
+        if (error) {
+          console.error('Error loading job from Supabase:', error);
+        } else if (data) {
+          // Map Supabase format to expected format (same as GET /api/jobs)
+          job = {
+            id: data.id,
+            address: data.address || null,
+            propertyAddress: data.address || null, // Also include propertyAddress for backward compatibility
+            name: data.client_name || data.name || null,
+            client_name: data.client_name || data.name || null,
+            firstName: data.firstName || null,
+            lastName: data.lastName || null,
+            email: data.email || null,
+            phone: data.phone || null,
+            city: data.city || null,
+            state: data.state || null,
+            zip: data.zip || null,
+            county: data.county || null,
+            role: data.role || null,
+            userRole: data.role || null,
+            notes: data.notes || null,
+            wellPermitNumber: data.wellPermitNumber || data.well_permit_number || null,
+            hasCistern: data.hasCistern || null,
+            equipmentInspection: data.equipmentInspection || null,
+            willBePresent: data.willBePresent || null,
+            accessInstructions: data.accessInstructions || null,
+            scheduledDate: data.scheduledDate || data.scheduled_date || null,
+            status: data.status || 'pending',
+            assignedTechId: data.assigned_tech_id || data.assignedTechId || null,
+            assigned_tech_id: data.assigned_tech_id || data.assignedTechId || null,
+            archived: data.archived || false,
+            created_at: data.created_at,
+            createdAt: data.created_at,
+            updated_at: data.updated_at,
+            updatedAt: data.updated_at,
+          };
+          console.log(`✅ Loaded job ${id} from Supabase`);
+          return res.json(job);
+        }
+      } catch (supabaseErr) {
+        console.error('Supabase error loading job:', supabaseErr);
+      }
+    }
+    
+    // Fallback: Try local JSON (development only)
     try {
       const jobs = await readDataFile('jobs.json');
       job = jobs.find(j => j.id === id);
-    } catch (error) {}
-    
-    if (!job && supabase) {
-      try {
-        const { data } = await supabase.from('jobs').select('*').eq('id', id).single();
-        if (data) job = data;
-      } catch (error) {}
+      if (job) {
+        console.log(`✅ Loaded job ${id} from local JSON`);
+        return res.json(job);
+      }
+    } catch (error) {
+      console.log('Local file system not available (expected on Vercel)');
     }
     
-    if (!job) return res.status(404).json({ error: 'Job not found' });
+    if (!job) {
+      console.log(`⚠️ Job ${id} not found in Supabase or local storage`);
+      return res.status(404).json({ error: 'Job not found' });
+    }
+    
     res.json(job);
   } catch (error) {
+    console.error('Error in GET /api/jobs/:id:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
