@@ -1568,6 +1568,16 @@ app.use('*', (req, res) => {
   });
 });
 
+// Test route to verify Express is being called
+app.get('/api/test-express', (req, res) => {
+  res.json({ 
+    message: 'Express is working!',
+    url: req.url,
+    path: req.path,
+    originalUrl: req.originalUrl
+  });
+});
+
 // Export as Vercel serverless function
 // Vercel expects a handler function that receives (req, res)
 // The file name [...].js means it catches all routes under /api/*
@@ -1576,6 +1586,13 @@ module.exports = (req, res) => {
   console.log(`📥 ${req.method} ${req.url}`);
   console.log(`   Original URL: ${req.originalUrl}`);
   console.log(`   Path: ${req.path}`);
+  console.log(`   Headers:`, JSON.stringify(req.headers));
+  
+  // IMPORTANT: Vercel passes the full path including /api/
+  // But Express might need the path without /api/ prefix
+  // Let's check what Vercel actually passes
+  const originalUrl = req.url;
+  
   // For all routes, use Express
   return app(req, res);
 };
