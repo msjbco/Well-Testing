@@ -430,10 +430,31 @@ app.post('/api/jobs', async (req, res) => {
     }
     
     try {
+      // If assigned_tech_id is provided, verify it exists in technicians table
+      if (supabaseJob.assigned_tech_id) {
+        console.log('🔍 Verifying tech exists:', supabaseJob.assigned_tech_id);
+        const { data: techData, error: techError } = await supabase
+          .from('technicians')
+          .select('id')
+          .eq('id', supabaseJob.assigned_tech_id)
+          .single();
+        
+        if (techError || !techData) {
+          console.error('❌ Tech not found:', supabaseJob.assigned_tech_id);
+          console.error('   Tech error:', techError);
+          return res.status(400).json({ 
+            error: `Invalid technician selected. The selected tech does not exist in the database.`,
+            details: `Tech ID: ${supabaseJob.assigned_tech_id}`
+          });
+        }
+        console.log('✅ Tech verified:', techData.id);
+      }
+      
       console.log('📝 Attempting to create job in Supabase:', {
         address: supabaseJob.address,
         client_name: supabaseJob.client_name,
-        status: supabaseJob.status
+        status: supabaseJob.status,
+        assigned_tech_id: supabaseJob.assigned_tech_id
       });
       
       const { data, error } = await supabase
@@ -447,6 +468,8 @@ app.post('/api/jobs', async (req, res) => {
         console.error('   Error code:', error.code);
         console.error('   Error message:', error.message);
         console.error('   Error details:', error.details);
+        console.error('   Error hint:', error.hint);
+        console.error('   Job data sent:', JSON.stringify(supabaseJob, null, 2));
         return res.status(400).json({ 
           error: `Failed to create job: ${error.message}`,
           details: error.details || error.hint || ''
