@@ -1244,8 +1244,27 @@
         const hardness = data.hardness || waterQuality.hardness;
         const ph = data.ph || waterQuality.ph;
         const tds = data.tds || waterQuality.tds;
+        const ecoli = data.ecoli || waterQuality.ecoli;
+        const overallRating = data.overallRating || waterQuality.overallRating;
         
-        if (coliformEcoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds) {
+        console.log('💧 Water Quality check:', {
+          coliformEcoli,
+          ecoli,
+          nitrate,
+          arsenic,
+          lead,
+          iron,
+          manganese,
+          hardness,
+          ph,
+          tds,
+          overallRating,
+          waterQualityKeys: Object.keys(waterQuality),
+          waterQualityObject: waterQuality,
+          dataKeys: Object.keys(data).filter(k => k.includes('coliform') || k.includes('nitrate') || k.includes('arsenic') || k.includes('lead') || k.includes('iron') || k.includes('manganese') || k.includes('hardness') || k.includes('ph') || k.includes('tds'))
+        });
+        
+        if (coliformEcoli || ecoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds || overallRating) {
           reportHTML += `
             <div class="report-section water-quality-section">
               <h2>Water Quality</h2>
