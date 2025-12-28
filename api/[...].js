@@ -1556,12 +1556,26 @@ app.get('/api/diagnostic/report/:id', async (req, res) => {
   }
 });
 
+// Catch-all route to handle any unmatched requests
+app.use('*', (req, res) => {
+  console.log(`⚠️ Unmatched route: ${req.method} ${req.originalUrl || req.url}`);
+  res.status(404).json({ 
+    error: 'Route not found',
+    method: req.method,
+    url: req.originalUrl || req.url,
+    path: req.path,
+    message: 'This route is not defined in the Express app'
+  });
+});
+
 // Export as Vercel serverless function
 // Vercel expects a handler function that receives (req, res)
 // The file name [...].js means it catches all routes under /api/*
 module.exports = (req, res) => {
   // Log all requests for debugging
   console.log(`📥 ${req.method} ${req.url}`);
+  console.log(`   Original URL: ${req.originalUrl}`);
+  console.log(`   Path: ${req.path}`);
   // For all routes, use Express
   return app(req, res);
 };
