@@ -1068,9 +1068,17 @@
             reportHTML += `</div>`;
           }
           
-          // Display discharge location and source of output - check both data and wellBasics
-          const dischargeLocation = data.dischargeLocation || wellBasics.dischargeLocation;
-          const sourceOfOutput = data.sourceOfOutput || wellBasics.sourceOfOutput;
+          // Display discharge location and source of output - check data, wellBasics, and flowReadings metadata
+          const dischargeLocation = data.dischargeLocation || wellBasics.dischargeLocation || data.flowReadings?.dischargeLocation;
+          const sourceOfOutput = data.sourceOfOutput || wellBasics.sourceOfOutput || data.flowReadings?.sourceOfOutput;
+          console.log('🌊 Flow test additional info:', {
+            dischargeLocation,
+            sourceOfOutput,
+            hasDataDischarge: !!data.dischargeLocation,
+            hasWellBasicsDischarge: !!wellBasics.dischargeLocation,
+            wellBasicsKeys: Object.keys(wellBasics),
+            dataKeys: Object.keys(data).filter(k => k.includes('discharge') || k.includes('source') || k.includes('output'))
+          });
           if (dischargeLocation || sourceOfOutput) {
             reportHTML += `
               <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
