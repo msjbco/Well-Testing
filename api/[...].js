@@ -605,8 +605,7 @@ app.get('/api/reports', async (req, res) => {
   }
 }); */
 
-// DISABLED: Now handled by Next.js API route at app/api/reports/[id]/route.ts
-// app.get('/api/reports/:id', async (req, res) => {
+app.get('/api/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
     let report = null;
