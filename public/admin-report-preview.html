@@ -677,6 +677,29 @@
           console.log('   Job keys:', job ? Object.keys(job) : 'null');
 
           const data = report.data;
+          
+          // Flatten nested data structures for easier access
+          // Water quality data is nested in data.waterQuality
+          const waterQuality = data.waterQuality || {};
+          // Well basics data is nested in data.wellBasics
+          const wellBasics = data.wellBasics || {};
+          // System equipment data is nested in data.systemEquipment
+          const systemEquipment = data.systemEquipment || {};
+          
+          // Merge water quality into data for receipt calculation
+          // This allows the receipt calculation to access water quality fields directly
+          const dataForReceipt = {
+            ...data,
+            ...waterQuality, // Merge water quality fields into data
+          };
+          
+          console.log('📊 Data structure:', {
+            hasWaterQuality: !!data.waterQuality,
+            hasWellBasics: !!data.wellBasics,
+            hasSystemEquipment: !!data.systemEquipment,
+            waterQualityKeys: Object.keys(waterQuality),
+            wellBasicsKeys: Object.keys(wellBasics),
+          });
 
         // Load tech data if job has assigned tech
         let techName = null;
@@ -764,34 +787,41 @@
           `;
         }
 
-        // Well Basics
-        if (data.totalDepth || data.casingDepth || data.staticWaterLevel || data.gpsLat) {
+        // Well Basics - check both data and wellBasics
+        const totalDepth = data.totalDepth || wellBasics.totalDepth;
+        const casingDepth = data.casingDepth || wellBasics.casingDepth;
+        const staticWaterLevel = data.staticWaterLevel || wellBasics.staticWaterLevel;
+        const gpsLat = data.gpsLat || wellBasics.gpsLat;
+        const gpsLong = data.gpsLong || wellBasics.gpsLong;
+        const coordinates = data.coordinates || wellBasics.coordinates;
+        
+        if (totalDepth || casingDepth || staticWaterLevel || gpsLat) {
           reportHTML += `
             <div class="report-section">
               <h2>Well Basics</h2>
               <div class="report-grid">
           `;
-          if (data.totalDepth) {
+          if (totalDepth) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Total Depth</div>
-                <div class="report-value">${data.totalDepth} ft</div>
+                <div class="report-value">${totalDepth} ft</div>
               </div>
             `;
           }
-          if (data.casingDepth) {
+          if (casingDepth) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Casing Depth</div>
-                <div class="report-value">${data.casingDepth} ft</div>
+                <div class="report-value">${casingDepth} ft</div>
               </div>
             `;
           }
-          if (data.staticWaterLevel) {
+          if (staticWaterLevel) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Static Water Level</div>
-                <div class="report-value">${data.staticWaterLevel} ft</div>
+                <div class="report-value">${staticWaterLevel} ft</div>
               </div>
             `;
           }
@@ -800,17 +830,17 @@
           let mapLong = null;
           let coordinatesText = '';
           
-          if (data.coordinates) {
+          if (coordinates) {
             // Parse coordinates field (format: "lat, long" or "lat long")
-            const parts = data.coordinates.split(/[,\s]+/).filter(p => p.trim());
+            const parts = coordinates.split(/[,\s]+/).filter(p => p.trim());
             if (parts.length >= 2) {
               mapLat = parseFloat(parts[0]);
               mapLong = parseFloat(parts[1]);
               coordinatesText = `${mapLat}, ${mapLong}`;
             }
-          } else if (data.gpsLat && data.gpsLong) {
-            mapLat = parseFloat(data.gpsLat);
-            mapLong = parseFloat(data.gpsLong);
+          } else if (gpsLat && gpsLong) {
+            mapLat = parseFloat(gpsLat);
+            mapLong = parseFloat(gpsLong);
             coordinatesText = `${mapLat}, ${mapLong}`;
           }
           
@@ -835,15 +865,15 @@
             if (!window.mapCoordinates) window.mapCoordinates = {};
             const mapId = report.id || 'map';
             window.mapCoordinates[mapId] = { lat: mapLat, lng: mapLong, reportId: report.id };
-          } else if (data.gpsLat && data.gpsLong) {
+          } else if (gpsLat && gpsLong) {
             // Show link even if coordinates can't be parsed for map
-            const mapsUrl = `https://www.google.com/maps?q=${data.gpsLat},${data.gpsLong}`;
+            const mapsUrl = `https://www.google.com/maps?q=${gpsLat},${gpsLong}`;
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">GPS Coordinates</div>
                 <div class="report-value">
                   <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;font-weight:600">
-                    ${data.gpsLat}, ${data.gpsLong}
+                    ${gpsLat}, ${gpsLong}
                   </a>
                 </div>
               </div>
@@ -1064,74 +1094,83 @@
           reportHTML += `</div>`;
         }
 
-        // System Equipment
-        if (data.pressureTankSize || data.pumpMakeModel || data.pumpCondition) {
+        // System Equipment - check both data and systemEquipment
+        const pressureTankSize = data.pressureTankSize || systemEquipment.pressureTankSize;
+        const prechargePSI = data.prechargePSI || systemEquipment.prechargePSI;
+        const storageTanks = data.storageTanks || systemEquipment.storageTanks;
+        const pumpMakeModel = data.pumpMakeModel || systemEquipment.pumpMakeModel;
+        const pumpCondition = data.pumpCondition || systemEquipment.pumpCondition;
+        const pressureTankCondition = data.pressureTankCondition || systemEquipment.pressureTankCondition;
+        const wiringCondition = data.wiringCondition || systemEquipment.wiringCondition;
+        const wellCapCondition = data.wellCapCondition || systemEquipment.wellCapCondition;
+        
+        if (pressureTankSize || pumpMakeModel || pumpCondition || pressureTankCondition || wiringCondition || wellCapCondition) {
           reportHTML += `
             <div class="report-section system-equipment-section">
               <h2>System Equipment</h2>
               <div class="report-grid">
           `;
-          if (data.pressureTankSize) {
+          if (pressureTankSize) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Pressure Tank Size</div>
-                <div class="report-value">${data.pressureTankSize} gallons</div>
+                <div class="report-value">${pressureTankSize} gallons</div>
               </div>
             `;
           }
-          if (data.prechargePSI) {
+          if (prechargePSI) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Pre-charge PSI</div>
-                <div class="report-value">${data.prechargePSI} PSI</div>
+                <div class="report-value">${prechargePSI} PSI</div>
               </div>
             `;
           }
-          if (data.storageTanks) {
+          if (storageTanks) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Storage Tanks</div>
-                <div class="report-value">${data.storageTanks} gallons</div>
+                <div class="report-value">${storageTanks} gallons</div>
               </div>
             `;
           }
-          if (data.pumpMakeModel) {
+          if (pumpMakeModel) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Pump Make/Model/HP</div>
-                <div class="report-value">${data.pumpMakeModel}</div>
+                <div class="report-value">${pumpMakeModel}</div>
               </div>
             `;
           }
-          if (data.pumpCondition) {
+          if (pumpCondition) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Pump Condition</div>
-                <div class="report-value">${data.pumpCondition}</div>
+                <div class="report-value">${pumpCondition}</div>
               </div>
             `;
           }
-          if (data.pressureTankCondition) {
+          if (pressureTankCondition) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Pressure Tank Condition</div>
-                <div class="report-value">${data.pressureTankCondition}</div>
+                <div class="report-value">${pressureTankCondition}</div>
               </div>
             `;
           }
-          if (data.wiringCondition) {
+          if (wiringCondition) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Wiring Condition</div>
-                <div class="report-value">${data.wiringCondition}</div>
+                <div class="report-value">${wiringCondition}</div>
               </div>
             `;
           }
-          if (data.wellCapCondition) {
+          if (wellCapCondition) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Well Cap Condition</div>
-                <div class="report-value">${data.wellCapCondition}</div>
+                <div class="report-value">${wellCapCondition}</div>
               </div>
             `;
           }
@@ -1142,81 +1181,81 @@
         }
 
         // Water Quality
-        if (data.coliformEcoli || data.nitrate || data.arsenic || data.lead) {
+        if (coliformEcoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds) {
           reportHTML += `
             <div class="report-section water-quality-section">
               <h2>Water Quality</h2>
               <div class="report-grid">
           `;
-          if (data.coliformEcoli) {
+          if (coliformEcoli) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Coliform / E.coli</div>
-                <div class="report-value">${data.coliformEcoli}</div>
+                <div class="report-value">${coliformEcoli}</div>
               </div>
             `;
           }
-          if (data.nitrate) {
+          if (nitrate) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Nitrate</div>
-                <div class="report-value">${data.nitrate} mg/L</div>
+                <div class="report-value">${nitrate} mg/L</div>
               </div>
             `;
           }
-          if (data.arsenic) {
+          if (arsenic) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Arsenic</div>
-                <div class="report-value">${data.arsenic} ppb</div>
+                <div class="report-value">${arsenic} ppb</div>
               </div>
             `;
           }
-          if (data.lead) {
+          if (lead) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Lead</div>
-                <div class="report-value">${data.lead} ppb</div>
+                <div class="report-value">${lead} ppb</div>
               </div>
             `;
           }
-          if (data.iron) {
+          if (iron) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Iron</div>
-                <div class="report-value">${data.iron} mg/L</div>
+                <div class="report-value">${iron} mg/L</div>
               </div>
             `;
           }
-          if (data.manganese) {
+          if (manganese) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Manganese</div>
-                <div class="report-value">${data.manganese} mg/L</div>
+                <div class="report-value">${manganese} mg/L</div>
               </div>
             `;
           }
-          if (data.hardness) {
+          if (hardness) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Hardness</div>
-                <div class="report-value">${data.hardness} mg/L</div>
+                <div class="report-value">${hardness} mg/L</div>
               </div>
             `;
           }
-          if (data.ph) {
+          if (ph) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">pH</div>
-                <div class="report-value">${data.ph}</div>
+                <div class="report-value">${ph}</div>
               </div>
             `;
           }
-          if (data.tds) {
+          if (tds) {
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">TDS</div>
-                <div class="report-value">${data.tds} mg/L</div>
+                <div class="report-value">${tds} mg/L</div>
               </div>
             `;
           }
@@ -1247,7 +1286,8 @@
         }
 
         // Receipt Section - Calculate receipt using shared function
-        const receiptCalc = calculateReceipt(job, data);
+        // Use dataForReceipt which has water quality fields merged in
+        const receiptCalc = calculateReceipt(job, dataForReceipt);
         const lineItems = receiptCalc.lineItems;
         const total = receiptCalc.total;
         
