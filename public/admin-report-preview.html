@@ -1189,7 +1189,17 @@
           `;
         }
 
-        // Water Quality
+        // Water Quality - check both data and waterQuality
+        const coliformEcoli = data.coliformEcoli || waterQuality.coliformEcoli || waterQuality.coliform;
+        const nitrate = data.nitrate || waterQuality.nitrate;
+        const arsenic = data.arsenic || waterQuality.arsenic;
+        const lead = data.lead || waterQuality.lead;
+        const iron = data.iron || waterQuality.iron;
+        const manganese = data.manganese || waterQuality.manganese;
+        const hardness = data.hardness || waterQuality.hardness;
+        const ph = data.ph || waterQuality.ph;
+        const tds = data.tds || waterQuality.tds;
+        
         if (coliformEcoli || nitrate || arsenic || lead || iron || manganese || hardness || ph || tds) {
           reportHTML += `
             <div class="report-section water-quality-section">
