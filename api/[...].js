@@ -1212,11 +1212,13 @@ app.delete('/api/techs/:id', async (req, res) => {
 // BUT: We exclude /api/reports routes to let Next.js handle them
 module.exports = (req, res) => {
   // Check if this is a report route - if so, let Next.js handle it
-  const url = req.url || req.path || '';
-  if (url.startsWith('/api/reports/')) {
-    // Return 404 so Next.js routes can handle it
-    // Actually, we should just not handle it at all
-    // But since this is a catch-all, we need to return 404
+  // But we need to check the actual path, not just the URL
+  const path = req.path || (req.url ? new URL(req.url, 'http://localhost').pathname : '');
+  
+  // Only skip specific report routes that Next.js handles
+  // Keep /api/reports (GET all) in Express for the dashboard
+  if (path.match(/^\/api\/reports\/[^\/]+$/) || path.match(/^\/api\/reports\/job\/[^\/]+$/)) {
+    // These are handled by Next.js - return 404 so Next.js can handle them
     res.status(404).json({ error: 'Not found - handled by Next.js' });
     return;
   }
