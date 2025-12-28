@@ -1069,14 +1069,16 @@
           }
           
           // Display discharge location and source of output - check data, wellBasics, and flowReadings metadata
-          const dischargeLocation = data.dischargeLocation || wellBasics.dischargeLocation || data.flowReadings?.dischargeLocation;
-          const sourceOfOutput = data.sourceOfOutput || wellBasics.sourceOfOutput || data.flowReadings?.sourceOfOutput;
+          const dischargeLocation = data.dischargeLocation || wellBasics.dischargeLocation || systemEquipment.dischargeLocation;
+          const sourceOfOutput = data.sourceOfOutput || wellBasics.sourceOfOutput || systemEquipment.sourceOfOutput;
           console.log('🌊 Flow test additional info:', {
             dischargeLocation,
             sourceOfOutput,
             hasDataDischarge: !!data.dischargeLocation,
             hasWellBasicsDischarge: !!wellBasics.dischargeLocation,
+            hasSystemEquipmentDischarge: !!systemEquipment.dischargeLocation,
             wellBasicsKeys: Object.keys(wellBasics),
+            systemEquipmentKeys: Object.keys(systemEquipment),
             dataKeys: Object.keys(data).filter(k => k.includes('discharge') || k.includes('source') || k.includes('output'))
           });
           if (dischargeLocation || sourceOfOutput) {
