@@ -1306,18 +1306,22 @@
           `;
         }
 
-        // Water Quality - check both data and waterQuality
-        const coliformEcoli = data.coliformEcoli || waterQuality.coliformEcoli || waterQuality.coliform;
-        const nitrate = data.nitrate || waterQuality.nitrate;
-        const arsenic = data.arsenic || waterQuality.arsenic;
-        const lead = data.lead || waterQuality.lead;
-        const iron = data.iron || waterQuality.iron;
-        const manganese = data.manganese || waterQuality.manganese;
-        const hardness = data.hardness || waterQuality.hardness;
-        const ph = data.ph || waterQuality.ph;
-        const tds = data.tds || waterQuality.tds;
-        const ecoli = data.ecoli || waterQuality.ecoli;
-        const overallRating = data.overallRating || waterQuality.overallRating;
+            // Water Quality - check both data and waterQuality
+            // PWA saves coliform and ecoli as separate fields, not coliformEcoli
+            const coliform = data.coliform || waterQuality.coliform || report.coliform;
+            const ecoli = data.ecoli || waterQuality.ecoli || report.ecoli;
+            const nitrate = data.nitrate || waterQuality.nitrate || report.nitrate;
+            const arsenic = data.arsenic || waterQuality.arsenic || report.arsenic;
+            const lead = data.lead || waterQuality.lead || report.lead;
+            const iron = data.iron || waterQuality.iron || report.iron;
+            const manganese = data.manganese || waterQuality.manganese || report.manganese;
+            const hardness = data.hardness || waterQuality.hardness || report.hardness;
+            const ph = data.ph || waterQuality.ph || report.ph;
+            const tds = data.tds || waterQuality.tds || report.tds;
+            const overallRating = data.overallRating || waterQuality.overallRating || report.overallRating;
+            
+            // For display, combine coliform and ecoli if both exist
+            const coliformEcoli = coliform || ecoli ? `${coliform || 'N/A'} / ${ecoli || 'N/A'}` : null;
         
         console.log('💧 Water Quality check:', {
           coliformEcoli,
