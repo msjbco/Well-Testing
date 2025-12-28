@@ -433,29 +433,47 @@ app.post('/api/jobs', async (req, res) => {
       // If assigned_tech_id is provided, verify it exists in technicians table
       if (supabaseJob.assigned_tech_id) {
         console.log('🔍 Verifying tech exists:', supabaseJob.assigned_tech_id);
+        console.log('   Tech ID type:', typeof supabaseJob.assigned_tech_id);
+        console.log('   Tech ID value:', JSON.stringify(supabaseJob.assigned_tech_id));
+        
         const { data: techData, error: techError } = await supabase
           .from('technicians')
-          .select('id')
+          .select('id, name')
           .eq('id', supabaseJob.assigned_tech_id)
           .single();
         
-        if (techError || !techData) {
-          console.error('❌ Tech not found:', supabaseJob.assigned_tech_id);
-          console.error('   Tech error:', techError);
+        if (techError) {
+          console.error('❌ Tech verification error:', techError);
+          console.error('   Error code:', techError.code);
+          console.error('   Error message:', techError.message);
+          // If it's a "not found" error (PGRST116), the tech doesn't exist
+          if (techError.code === 'PGRST116') {
+            return res.status(400).json({ 
+              error: `Invalid technician selected. The selected tech does not exist in the database.`,
+              details: `Tech ID: ${supabaseJob.assigned_tech_id}`
+            });
+          }
+          // For other errors (like RLS), log but continue - might still work
+          console.warn('⚠️ Tech verification had an error, but continuing anyway');
+        } else if (!techData) {
+          console.error('❌ Tech not found (no data returned):', supabaseJob.assigned_tech_id);
           return res.status(400).json({ 
             error: `Invalid technician selected. The selected tech does not exist in the database.`,
             details: `Tech ID: ${supabaseJob.assigned_tech_id}`
           });
+        } else {
+          console.log('✅ Tech verified:', techData.id, '-', techData.name);
         }
-        console.log('✅ Tech verified:', techData.id);
+      } else {
+        console.log('ℹ️ No tech assigned (assigned_tech_id is null)');
       }
       
-      console.log('📝 Attempting to create job in Supabase:', {
-        address: supabaseJob.address,
-        client_name: supabaseJob.client_name,
-        status: supabaseJob.status,
-        assigned_tech_id: supabaseJob.assigned_tech_id
-      });
+      console.log('📝 Attempting to create job in Supabase:');
+      console.log('   Address:', supabaseJob.address);
+      console.log('   Client:', supabaseJob.client_name);
+      console.log('   Status:', supabaseJob.status);
+      console.log('   Assigned Tech ID:', supabaseJob.assigned_tech_id);
+      console.log('   Full job data:', JSON.stringify(supabaseJob, null, 2));
       
       const { data, error } = await supabase
         .from('jobs')
