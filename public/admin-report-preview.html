@@ -886,6 +886,12 @@
         }
 
         // Flow & Yield Test
+        console.log('📊 Flow readings data:', {
+          hasFlowReadings: !!data.flowReadings,
+          flowReadingsLength: data.flowReadings?.length || 0,
+          flowReadings: data.flowReadings
+        });
+        
         if (data.flowReadings && data.flowReadings.length > 0) {
           // Helper function to format numbers with commas
           function formatNumber(num) {
@@ -962,13 +968,16 @@
             const percentChangeDisplay = reading.percentChange !== null 
               ? reading.percentChange.toFixed(2) + '%' 
               : '--';
-            reportHTML += `
-              <tr>
-                <td>${reading.time}</td>
-                <td>${reading.gpm.toFixed(2)}</td>
-                <td style="color:${reading.percentChangeColor};font-weight:600;text-align:left">${percentChangeDisplay}</td>
-              </tr>
-            `;
+            // Only display if reading has a gpm value (not null/undefined)
+            if (reading.gpm !== null && reading.gpm !== undefined) {
+              reportHTML += `
+                <tr>
+                  <td>${reading.time !== null && reading.time !== undefined ? reading.time : '--'}</td>
+                  <td>${reading.gpm.toFixed(2)}</td>
+                  <td style="color:${reading.percentChangeColor};font-weight:600;text-align:left">${percentChangeDisplay}</td>
+                </tr>
+              `;
+            }
           });
           reportHTML += `
                 </tbody>
