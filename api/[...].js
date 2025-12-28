@@ -539,9 +539,7 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// Reports API - DISABLED: Now handled by Next.js API routes in app/api/reports/
-// Keeping this commented out in case we need to revert
-/*
+// Reports API - GET all reports (needed for dashboard)
 app.get('/api/reports', async (req, res) => {
   try {
     let reports = [];
