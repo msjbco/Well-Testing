@@ -1211,19 +1211,10 @@ app.delete('/api/techs/:id', async (req, res) => {
 // The file name [...].js means it catches all routes under /api/*
 // BUT: We exclude /api/reports routes to let Next.js handle them
 module.exports = (req, res) => {
-  // Check if this is a report route - if so, let Next.js handle it
-  // But we need to check the actual path, not just the URL
-  const path = req.path || (req.url ? new URL(req.url, 'http://localhost').pathname : '');
-  
-  // Only skip specific report routes that Next.js handles
-  // Keep /api/reports (GET all) in Express for the dashboard
-  if (path.match(/^\/api\/reports\/[^\/]+$/) || path.match(/^\/api\/reports\/job\/[^\/]+$/)) {
-    // These are handled by Next.js - return 404 so Next.js can handle them
-    res.status(404).json({ error: 'Not found - handled by Next.js' });
-    return;
-  }
-  
-  // For all other routes, use Express
+  // For all routes, use Express
+  // Next.js routes in app/api/ will take precedence automatically
+  // We don't need to check here - just let Express handle everything
+  // If Next.js routes exist, they'll be matched first by Vercel
   return app(req, res);
 };
 
