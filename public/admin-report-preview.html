@@ -571,6 +571,22 @@
       // Load report data
       async function loadReport() {
         try {
+          // FIRST: Check what Supabase actually has via diagnostic endpoint
+          if (reportId) {
+            try {
+              const diagnosticResponse = await fetch(`/api/diagnostic/report/${reportId}`);
+              const diagnostic = await diagnosticResponse.json();
+              console.log('🔍🔍🔍 SUPABASE DIAGNOSTIC (RAW DATA FROM SUPABASE):', diagnostic);
+              console.log('🔍 Water quality from Supabase:', diagnostic.queryResult?.water_quality_raw);
+              console.log('🔍 Water quality stringified:', diagnostic.queryResult?.water_quality_stringified);
+              console.log('🔍 Water quality keys:', diagnostic.queryResult?.water_quality_keys);
+              console.log('🔍 Water quality type:', diagnostic.queryResult?.water_quality_type);
+              console.log('🔍 Full data from Supabase:', diagnostic.queryResult?.fullData);
+            } catch (diagError) {
+              console.warn('Could not fetch diagnostic:', diagError);
+            }
+          }
+          
           let report;
           try {
             // Try loading by reportId first
