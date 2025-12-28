@@ -533,8 +533,19 @@
         }
 
         // Water Quality Tests - $50 each (only if value exists)
+        // Check for coliform or ecoli (bacteria test)
+        const coliformValue = data.coliform || data.coliformEcoli;
+        const ecoliValue = data.ecoli;
+        if (coliformValue && (coliformValue === 'Present' || coliformValue === 'Absent' || coliformValue === 'present' || coliformValue === 'absent')) {
+          lineItems.push({ description: 'Coliform / E.coli Test', amount: 50 });
+          total += 50;
+        } else if (ecoliValue && (ecoliValue === 'Present' || ecoliValue === 'Absent' || ecoliValue === 'present' || ecoliValue === 'absent')) {
+          lineItems.push({ description: 'Coliform / E.coli Test', amount: 50 });
+          total += 50;
+        }
+        
+        // Check for other water quality tests
         const waterQualityTests = [
-          { field: 'coliformEcoli', name: 'Coliform / E.coli Test' },
           { field: 'nitrate', name: 'Nitrate Test' },
           { field: 'arsenic', name: 'Arsenic Test' },
           { field: 'lead', name: 'Lead Test' },
@@ -547,18 +558,10 @@
 
         waterQualityTests.forEach(test => {
           const value = data[test.field];
-          // Check if value exists (for coliformEcoli, check if it's Present or Absent)
-          if (test.field === 'coliformEcoli') {
-            if (value && (value === 'Present' || value === 'Absent')) {
-              lineItems.push({ description: test.name, amount: 50 });
-              total += 50;
-            }
-          } else {
-            // For numeric fields, check if value exists and is not empty
-            if (value !== null && value !== undefined && value !== '') {
-              lineItems.push({ description: test.name, amount: 50 });
-              total += 50;
-            }
+          // For numeric fields, check if value exists and is not empty
+          if (value !== null && value !== undefined && value !== '') {
+            lineItems.push({ description: test.name, amount: 50 });
+            total += 50;
           }
         });
 
