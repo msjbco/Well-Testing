@@ -1300,7 +1300,23 @@
           </div>
         `;
 
+          console.log('📝 Setting reportContent HTML. Job info section preview:');
+          const jobInfoIndex = reportHTML.indexOf('Job Information');
+          if (jobInfoIndex !== -1) {
+            const jobInfoPreview = reportHTML.substring(jobInfoIndex, jobInfoIndex + 500);
+            console.log(jobInfoPreview);
+          }
+          
           document.getElementById('reportContent').innerHTML = reportHTML;
+          
+          console.log('✅ HTML set. Verifying job info in DOM:');
+          setTimeout(() => {
+            const addressEl = document.querySelector('.report-grid .report-value');
+            if (addressEl) {
+              console.log('   First report-value element text:', addressEl.textContent);
+              console.log('   All report-values:', Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent));
+            }
+          }, 100);
           
           // Store receipt data for modal
           window.receiptData = { job, data, lineItems, total };
