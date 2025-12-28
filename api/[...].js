@@ -26,15 +26,22 @@ let supabase = null;
 if (createClient) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    // CRITICAL: Always use service role key for API - it bypasses RLS
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     console.log('🔍 Supabase initialization check:');
     console.log('  - URL present:', !!supabaseUrl);
-    console.log('  - Key present:', !!supabaseKey);
-    console.log('  - Using service role:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('  - Service role key present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('  - Anon key present:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.log('  - Using key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE' : 'ANON');
     
     if (supabaseUrl && supabaseKey) {
-      supabase = createClient(supabaseUrl, supabaseKey);
+      supabase = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      });
       console.log('✅ Supabase client initialized');
     } else {
       console.warn('⚠️ Supabase not initialized - missing URL or key');
@@ -624,6 +631,18 @@ app.get('/api/reports/:id', async (req, res) => {
           console.error('   Error message:', error.message);
           console.error('   Error details:', error.details);
           console.error('   Error hint:', error.hint);
+          // If it's an RLS error, return a more helpful message
+          if (error.code === 'PGRST116' || error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+            return res.status(403).json({ 
+              error: 'Row Level Security is blocking access. Please disable RLS on well_reports table or check service role key.',
+              details: error.message 
+            });
+          }
+          // Return the error instead of continuing to fallback
+          return res.status(500).json({ 
+            error: 'Failed to load report from Supabase',
+            details: error.message 
+          });
         } else if (data) {
           console.log(`✅ Found report ${id} in Supabase`);
           // Map Supabase format to expected format (with data property for admin site compatibility)
@@ -711,6 +730,18 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
           console.error('   Error message:', error.message);
           console.error('   Error details:', error.details);
           console.error('   Error hint:', error.hint);
+          // If it's an RLS error, return a more helpful message
+          if (error.code === 'PGRST116' || error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+            return res.status(403).json({ 
+              error: 'Row Level Security is blocking access. Please disable RLS on well_reports table or check service role key.',
+              details: error.message 
+            });
+          }
+          // Return the error instead of continuing to fallback
+          return res.status(500).json({ 
+            error: 'Failed to load report from Supabase',
+            details: error.message 
+          });
         } else if (data) {
           console.log(`✅ Found report for job ${jobId} in Supabase (report ID: ${data.id})`);
           // Map Supabase format to expected format (with data property for admin site compatibility)
