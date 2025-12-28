@@ -1307,7 +1307,13 @@
             console.log(jobInfoPreview);
           }
           
-          document.getElementById('reportContent').innerHTML = reportHTML;
+          // Force a re-render by temporarily hiding and showing
+          const reportContentEl = document.getElementById('reportContent');
+          reportContentEl.style.display = 'none';
+          reportContentEl.innerHTML = reportHTML;
+          // Force browser to recalculate layout
+          void reportContentEl.offsetHeight;
+          reportContentEl.style.display = '';
           
           console.log('✅ HTML set. Verifying job info in DOM:');
           setTimeout(() => {
@@ -1315,6 +1321,29 @@
             if (addressEl) {
               console.log('   First report-value element text:', addressEl.textContent);
               console.log('   All report-values:', Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent));
+              
+              // If we still see "N/A" in the DOM, something is wrong
+              const allValues = Array.from(document.querySelectorAll('.report-grid .report-value')).map(el => el.textContent.trim());
+              if (allValues.includes('N/A')) {
+                console.error('❌ ERROR: Still seeing "N/A" in DOM after setting HTML!');
+                console.error('   Values found:', allValues);
+                // Force update by directly setting text content
+                const jobInfoSection = document.querySelector('.report-section h2');
+                if (jobInfoSection && jobInfoSection.textContent === 'Job Information') {
+                  const reportItems = document.querySelectorAll('.report-grid .report-item');
+                  reportItems.forEach((item, index) => {
+                    const valueEl = item.querySelector('.report-value');
+                    if (valueEl && valueEl.textContent.trim() === 'N/A') {
+                      if (index === 0) valueEl.textContent = jobAddress;
+                      else if (index === 1) valueEl.textContent = jobCounty;
+                      else if (index === 2) valueEl.textContent = jobClientName;
+                    }
+                  });
+                  console.log('🔧 Forced update of DOM elements');
+                }
+              } else {
+                console.log('✅ All values are correct in DOM');
+              }
             }
           }, 100);
           
