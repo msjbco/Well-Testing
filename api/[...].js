@@ -841,8 +841,16 @@ app.get('/api/reports/job/:jobId', async (req, res) => {
           console.error('   Error message:', error.message);
           console.error('   Error details:', error.details);
           console.error('   Error hint:', error.hint);
+          // If it's a "not found" error (PGRST116), return 404
+          if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+            console.log(`⚠️ No report found for job ${jobId} in Supabase`);
+            return res.status(404).json({ 
+              error: 'Report not found',
+              details: `No report found for job ID: ${jobId}`
+            });
+          }
           // If it's an RLS error, return a more helpful message
-          if (error.code === 'PGRST116' || error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+          if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
             return res.status(403).json({ 
               error: 'Row Level Security is blocking access. Please disable RLS on well_reports table or check service role key.',
               details: error.message 
