@@ -603,7 +603,7 @@ app.get('/api/reports', async (req, res) => {
     console.error('Error in /api/reports:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}); */
+});
 
 app.get('/api/reports/:id', async (req, res) => {
   try {
@@ -690,10 +690,9 @@ app.get('/api/reports/:id', async (req, res) => {
     console.error('Error in /api/reports/:id:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}); */
+});
 
-// DISABLED: Now handled by Next.js API route at app/api/reports/job/[jobId]/route.ts
-// app.get('/api/reports/job/:jobId', async (req, res) => {
+app.get('/api/reports/job/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
     let report = null;
