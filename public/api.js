@@ -309,10 +309,29 @@ async function reportsAPIGetByIdWithFallback(id) {
     return await reportsAPI.getById(id);
   } catch (error) {
     const errorMsg = error.message || error.toString() || '';
-    if (errorMsg === 'API_UNAVAILABLE' || 
+    // If 404 or API unavailable, try getting all reports and filtering client-side
+    if (error.status === 404 || 
+        errorMsg === 'API_UNAVAILABLE' || 
         errorMsg.includes('Failed to fetch') || 
         errorMsg.includes('NetworkError') ||
-        errorMsg.includes('Network request failed')) {
+        errorMsg.includes('Network request failed') ||
+        errorMsg.includes('HTTP error! status: 404')) {
+      console.warn('Report by ID endpoint failed, trying to get all reports and filter:', errorMsg);
+      try {
+        // /api/reports works, so use it and filter client-side
+        const allReports = await reportsAPI.getAll();
+        console.log(`Got ${allReports.length} reports, filtering for ID: ${id}`);
+        const report = allReports.find(r => r.id === id || r.job_id === id);
+        if (report) {
+          console.log('Found report by filtering all reports:', report.id);
+          return report;
+        }
+        console.error('Report not found in all reports. Available IDs:', allReports.map(r => r.id));
+      } catch (fallbackError) {
+        console.error('Failed to get all reports as fallback:', fallbackError);
+      }
+      
+      // Last resort: localStorage
       console.warn('Using localStorage fallback for report getById');
       const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
       console.log('Reports in localStorage:', reports.length, 'Looking for ID:', id);
@@ -340,20 +359,45 @@ window.jobsAPI = {
 // Fallback for reports getByJobId
 async function reportsAPIGetByJobIdWithFallback(jobId) {
   try {
-    return await reportsAPI.getByJobId(jobId);
+    const result = await reportsAPI.getByJobId(jobId);
+    // Handle both single report and array response
+    if (Array.isArray(result)) {
+      return result.length > 0 ? result[0] : null;
+    }
+    return result;
   } catch (error) {
     const errorMsg = error.message || error.toString() || '';
-    if (errorMsg === 'API_UNAVAILABLE' || 
+    // If 404 or API unavailable, try getting all reports and filtering client-side
+    if (error.status === 404 || 
+        errorMsg === 'API_UNAVAILABLE' || 
         errorMsg.includes('Failed to fetch') || 
         errorMsg.includes('NetworkError') ||
-        errorMsg.includes('Network request failed')) {
+        errorMsg.includes('Network request failed') ||
+        errorMsg.includes('HTTP error! status: 404')) {
+      console.warn('Report by jobId endpoint failed, trying to get all reports and filter:', errorMsg);
+      try {
+        // /api/reports works, so use it and filter client-side
+        const allReports = await reportsAPI.getAll();
+        console.log(`Got ${allReports.length} reports, filtering for jobId: ${jobId}`);
+        const report = allReports.find(r => r.jobId === jobId || r.job_id === jobId);
+        if (report) {
+          console.log('Found report by filtering all reports:', report.id);
+          return report;
+        }
+        console.error('Report not found in all reports for jobId:', jobId);
+        // Return null instead of throwing - let the caller handle it
+        return null;
+      } catch (fallbackError) {
+        console.error('Failed to get all reports as fallback:', fallbackError);
+      }
+      
+      // Last resort: localStorage
       console.warn('Using localStorage fallback for report getByJobId');
       const reports = JSON.parse(localStorage.getItem('wellReports') || '[]');
-      console.log('Reports in localStorage:', reports.length, 'Looking for jobId:', jobId);
       const report = reports.find(r => r.jobId === jobId || r.job_id === jobId);
       if (!report) {
-        console.error('Report not found in localStorage. Available jobIds:', reports.map(r => r.jobId || r.job_id));
-        throw new Error('Report not found');
+        console.error('Report not found in localStorage for jobId:', jobId);
+        return null;
       }
       console.log('Report found in localStorage:', report);
       return report;
