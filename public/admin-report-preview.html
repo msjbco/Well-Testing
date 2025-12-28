@@ -716,9 +716,13 @@
             'data.waterQuality': data.waterQuality,
             'final waterQuality': waterQuality,
             'waterQuality keys': Object.keys(waterQuality),
-            'waterQuality sample': waterQuality.coliform || waterQuality.nitrate || 'empty',
+            'waterQuality full object': JSON.stringify(waterQuality),
+            'report.water_quality full': JSON.stringify(report.water_quality || {}),
+            'report.waterQuality full': JSON.stringify(report.waterQuality || {}),
+            'data.waterQuality full': JSON.stringify(data.waterQuality || {}),
             'report has data property': !!report.data,
             'data keys': Object.keys(data),
+            'report top level keys': Object.keys(report).filter(k => k.includes('water') || k.includes('quality') || k.includes('coliform') || k.includes('nitrate')),
           });
           
           // Merge water quality into data for receipt calculation
