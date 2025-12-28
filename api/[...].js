@@ -1460,15 +1460,109 @@ app.delete('/api/techs/:id', async (req, res) => {
   }
 });
 
+// Diagnostic endpoint to test Supabase connection
+app.get('/api/diagnostic/test', async (req, res) => {
+  try {
+    const diagnostics = {
+      timestamp: new Date().toISOString(),
+      supabaseInitialized: !!supabase,
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      usingKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE' : 'ANON',
+    };
+    
+    if (supabase) {
+      // Try a simple query to test connection
+      try {
+        const { data, error, count } = await supabase
+          .from('well_reports')
+          .select('id', { count: 'exact' })
+          .limit(1);
+        
+        diagnostics.supabaseQueryTest = {
+          success: !error,
+          error: error ? {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          } : null,
+          rowCount: count,
+          hasData: !!data
+        };
+      } catch (queryErr) {
+        diagnostics.supabaseQueryTest = {
+          success: false,
+          error: queryErr.message,
+          exception: true
+        };
+      }
+    }
+    
+    res.json(diagnostics);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Diagnostic failed',
+      message: error.message 
+    });
+  }
+});
+
+// Test endpoint to query a specific report
+app.get('/api/diagnostic/report/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const diagnostics = {
+      reportId: id,
+      supabaseInitialized: !!supabase,
+      timestamp: new Date().toISOString(),
+    };
+    
+    if (!supabase) {
+      return res.status(500).json({ 
+        ...diagnostics,
+        error: 'Supabase not initialized'
+      });
+    }
+    
+    // Try to query the report
+    const { data, error } = await supabase
+      .from('well_reports')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    diagnostics.queryResult = {
+      hasData: !!data,
+      hasError: !!error,
+      error: error ? {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      } : null,
+      dataKeys: data ? Object.keys(data) : null,
+      reportId: data?.id,
+      jobId: data?.job_id
+    };
+    
+    res.json(diagnostics);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Diagnostic failed',
+      message: error.message 
+    });
+  }
+});
+
 // Export as Vercel serverless function
 // Vercel expects a handler function that receives (req, res)
 // The file name [...].js means it catches all routes under /api/*
-// BUT: We exclude /api/reports routes to let Next.js handle them
 module.exports = (req, res) => {
+  // Log all requests for debugging
+  console.log(`📥 ${req.method} ${req.url}`);
   // For all routes, use Express
-  // Next.js routes in app/api/ will take precedence automatically
-  // We don't need to check here - just let Express handle everything
-  // If Next.js routes exist, they'll be matched first by Vercel
   return app(req, res);
 };
 
