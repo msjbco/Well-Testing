@@ -643,6 +643,7 @@
           }
           
           // If report doesn't have .data property, create it from the report itself
+          // Handle both formats: reports with 'data' wrapper and flat reports
           if (!report.data) {
             report.data = {
               flowReadings: report.flow_readings || report.flowReadings || [],
@@ -653,6 +654,21 @@
               wellBasics: report.well_basics || report.wellBasics || {},
               systemEquipment: report.system_equipment || report.systemEquipment || {},
             };
+          }
+          
+          // Also ensure flat fields are available on report for direct access
+          // This handles reports that come from /api/reports (flat format)
+          if (!report.water_quality && !report.waterQuality) {
+            report.water_quality = report.data?.waterQuality || report.data?.water_quality || {};
+            report.waterQuality = report.water_quality;
+          }
+          if (!report.well_basics && !report.wellBasics) {
+            report.well_basics = report.data?.wellBasics || report.data?.well_basics || {};
+            report.wellBasics = report.well_basics;
+          }
+          if (!report.system_equipment && !report.systemEquipment) {
+            report.system_equipment = report.data?.systemEquipment || report.data?.system_equipment || {};
+            report.systemEquipment = report.system_equipment;
           }
 
           // Load job data
