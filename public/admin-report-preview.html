@@ -1309,7 +1309,17 @@
 
         // Receipt Section - Calculate receipt using shared function
         // Use dataForReceipt which has water quality fields merged in
+        console.log('💰 Calculating receipt with dataForReceipt:', {
+          hasColiform: !!dataForReceipt.coliform,
+          hasEcoli: !!dataForReceipt.ecoli,
+          hasNitrate: !!dataForReceipt.nitrate,
+          coliformValue: dataForReceipt.coliform,
+          ecoliValue: dataForReceipt.ecoli,
+          nitrateValue: dataForReceipt.nitrate,
+          allKeys: Object.keys(dataForReceipt)
+        });
         const receiptCalc = calculateReceipt(job, dataForReceipt);
+        console.log('💰 Receipt calculation result:', receiptCalc);
         const lineItems = receiptCalc.lineItems;
         const total = receiptCalc.total;
         
