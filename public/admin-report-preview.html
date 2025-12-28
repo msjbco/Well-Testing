@@ -682,12 +682,12 @@
           const data = report.data;
           
           // Flatten nested data structures for easier access
-          // Water quality data is nested in data.waterQuality
-          const waterQuality = data.waterQuality || {};
-          // Well basics data is nested in data.wellBasics
-          const wellBasics = data.wellBasics || {};
-          // System equipment data is nested in data.systemEquipment
-          const systemEquipment = data.systemEquipment || {};
+          // Water quality data is nested in data.waterQuality OR directly in report
+          const waterQuality = data.waterQuality || report.water_quality || report.waterQuality || {};
+          // Well basics data is nested in data.wellBasics OR directly in report
+          const wellBasics = data.wellBasics || report.well_basics || report.wellBasics || {};
+          // System equipment data is nested in data.systemEquipment OR directly in report
+          const systemEquipment = data.systemEquipment || report.system_equipment || report.systemEquipment || {};
           
           // Merge water quality into data for receipt calculation
           // This allows the receipt calculation to access water quality fields directly
@@ -695,6 +695,30 @@
             ...data,
             ...waterQuality, // Merge water quality fields into data
           };
+          
+          // Also check if water quality fields are directly in data (not nested)
+          // Sometimes the API might return them flat
+          if (Object.keys(waterQuality).length === 0) {
+            // Try to extract from data directly if waterQuality is empty
+            const directWaterQuality = {
+              coliform: data.coliform || report.coliform,
+              ecoli: data.ecoli || report.ecoli,
+              nitrate: data.nitrate || report.nitrate,
+              arsenic: data.arsenic || report.arsenic,
+              lead: data.lead || report.lead,
+              iron: data.iron || report.iron,
+              manganese: data.manganese || report.manganese,
+              hardness: data.hardness || report.hardness,
+              ph: data.ph || report.ph,
+              tds: data.tds || report.tds,
+              overallRating: data.overallRating || report.overallRating,
+            };
+            // Only use if we found at least one value
+            if (Object.values(directWaterQuality).some(v => v !== undefined && v !== null && v !== '')) {
+              Object.assign(waterQuality, directWaterQuality);
+              Object.assign(dataForReceipt, directWaterQuality);
+            }
+          }
           
           console.log('📊 Data structure:', {
             hasWaterQuality: !!data.waterQuality,
