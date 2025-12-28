@@ -1544,7 +1544,14 @@ app.get('/api/diagnostic/report/:id', async (req, res) => {
       } : null,
       dataKeys: data ? Object.keys(data) : null,
       reportId: data?.id,
-      jobId: data?.job_id
+      jobId: data?.job_id,
+      // Include the actual water_quality object to see what's in Supabase
+      water_quality_raw: data?.water_quality || null,
+      water_quality_stringified: data?.water_quality ? JSON.stringify(data.water_quality) : null,
+      water_quality_keys: data?.water_quality ? Object.keys(data.water_quality) : null,
+      water_quality_type: data?.water_quality ? typeof data.water_quality : null,
+      // Also include full data for debugging
+      fullData: data || null
     };
     
     res.json(diagnostics);
