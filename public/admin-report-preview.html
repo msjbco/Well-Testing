@@ -1068,33 +1068,38 @@
             reportHTML += `</div>`;
           }
           
-          // Display discharge location and source of output
-          if (data.dischargeLocation || data.sourceOfOutput) {
+          // Display discharge location and source of output - check both data and wellBasics
+          const dischargeLocation = data.dischargeLocation || wellBasics.dischargeLocation;
+          const sourceOfOutput = data.sourceOfOutput || wellBasics.sourceOfOutput;
+          if (dischargeLocation || sourceOfOutput) {
             reportHTML += `
               <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
             `;
-            if (data.dischargeLocation) {
+            if (dischargeLocation) {
               reportHTML += `
                 <div class="report-item">
                   <div class="report-label">Location of Discharge</div>
-                  <div class="report-value">${data.dischargeLocation}</div>
+                  <div class="report-value">${dischargeLocation}</div>
                 </div>
               `;
             }
-            if (data.sourceOfOutput) {
+            if (sourceOfOutput) {
               reportHTML += `
                 <div class="report-item">
                   <div class="report-label">Source of Output</div>
-                  <div class="report-value">${data.sourceOfOutput}</div>
+                  <div class="report-value">${sourceOfOutput}</div>
                 </div>
               `;
             }
             reportHTML += `</div>`;
           }
-          if (data.pumpedDownTo && data.recoveryTime) {
+          // Check for pumped down and recovery - check multiple possible field names
+          const pumpedDownTo = data.pumpedDownTo || data.pumpedDown || wellBasics.pumpedDownTo || wellBasics.pumpedDown;
+          const recoveryTime = data.recoveryTime || data.recovery || wellBasics.recoveryTime || wellBasics.recovery;
+          if (pumpedDownTo && recoveryTime) {
             reportHTML += `
               <div class="flow-recovery-note" style="margin-top:1.5rem;padding:1rem;background:#f9f9f9;border-radius:8px">
-                <strong>Recovery:</strong> Pumped down to ${data.pumpedDownTo} ft, recovered in ${data.recoveryTime} minutes
+                <strong>Recovery:</strong> Pumped down to ${pumpedDownTo} ft, recovered in ${recoveryTime} minutes
               </div>
             `;
           }
@@ -1115,8 +1120,10 @@
         const pressureTankCondition = data.pressureTankCondition || systemEquipment.pressureTankCondition;
         const wiringCondition = data.wiringCondition || systemEquipment.wiringCondition;
         const wellCapCondition = data.wellCapCondition || systemEquipment.wellCapCondition;
+        const wellPumpLocation = data.wellPumpLocation || systemEquipment.wellPumpLocation;
+        const waterTreatment = data.waterTreatment || systemEquipment.waterTreatment;
         
-        if (pressureTankSize || pumpMakeModel || pumpCondition || pressureTankCondition || wiringCondition || wellCapCondition) {
+        if (pressureTankSize || pumpMakeModel || pumpCondition || pressureTankCondition || wiringCondition || wellCapCondition || wellPumpLocation || waterTreatment) {
           reportHTML += `
             <div class="report-section system-equipment-section">
               <h2>System Equipment</h2>
@@ -1186,6 +1193,33 @@
               </div>
             `;
           }
+          // Well Pump Location
+          const wellPumpLocation = data.wellPumpLocation || systemEquipment.wellPumpLocation;
+          if (wellPumpLocation) {
+            reportHTML += `
+              <div class="report-item">
+                <div class="report-label">Well Pump Location</div>
+                <div class="report-value">${wellPumpLocation}</div>
+              </div>
+            `;
+          }
+          // Water Treatment Equipment
+          const waterTreatment = data.waterTreatment || systemEquipment.waterTreatment;
+          if (waterTreatment) {
+            const treatmentDisplay = Array.isArray(waterTreatment) 
+              ? waterTreatment.join(', ')
+              : typeof waterTreatment === 'string' 
+                ? waterTreatment.split(',').map(t => t.trim()).filter(Boolean).join(', ')
+                : waterTreatment;
+            if (treatmentDisplay && treatmentDisplay !== 'None' && treatmentDisplay !== '') {
+              reportHTML += `
+                <div class="report-item">
+                  <div class="report-label">Water Treatment Equipment</div>
+                  <div class="report-value">${treatmentDisplay}</div>
+                </div>
+              `;
+            }
+          }
           reportHTML += `
               </div>
             </div>
@@ -1209,11 +1243,12 @@
               <h2>Water Quality</h2>
               <div class="report-grid">
           `;
-          if (coliformEcoli) {
+          if (coliformEcoli || ecoli) {
+            const coliformDisplay = coliformEcoli || ecoli;
             reportHTML += `
               <div class="report-item">
                 <div class="report-label">Coliform / E.coli</div>
-                <div class="report-value">${coliformEcoli}</div>
+                <div class="report-value">${coliformDisplay}</div>
               </div>
             `;
           }
