@@ -642,6 +642,15 @@
             return;
           }
           
+          // LOG THE ENTIRE REPORT OBJECT TO SEE WHAT WE'RE WORKING WITH
+          console.log('🔍🔍🔍 FULL REPORT OBJECT FROM API:', JSON.stringify(report, null, 2));
+          console.log('🔍 Report keys:', Object.keys(report));
+          console.log('🔍 Report.water_quality type:', typeof report.water_quality);
+          console.log('🔍 Report.water_quality value:', report.water_quality);
+          console.log('🔍 Report.water_quality stringified:', JSON.stringify(report.water_quality));
+          console.log('🔍 Report.waterQuality:', report.waterQuality);
+          console.log('🔍 Report.data:', report.data);
+          
           // If report doesn't have .data property, create it from the report itself
           // Handle both formats: reports with 'data' wrapper and flat reports
           if (!report.data) {
@@ -670,6 +679,11 @@
             report.system_equipment = report.data?.systemEquipment || report.data?.system_equipment || {};
             report.systemEquipment = report.system_equipment;
           }
+          
+          // AFTER NORMALIZATION, LOG AGAIN
+          console.log('🔍🔍🔍 AFTER NORMALIZATION - water_quality:', JSON.stringify(report.water_quality));
+          console.log('🔍🔍🔍 AFTER NORMALIZATION - waterQuality:', JSON.stringify(report.waterQuality));
+          console.log('🔍🔍🔍 AFTER NORMALIZATION - data.waterQuality:', JSON.stringify(report.data?.waterQuality));
 
           // Load job data
           let job = null;
