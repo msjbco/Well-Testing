@@ -724,107 +724,130 @@ app.get('/api/reports', async (req, res) => {
 app.get('/api/reports/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`📥 GET /api/reports/:id called with id: ${id}`);
+    console.log(`🔍 Supabase client status:`, supabase ? 'Initialized' : 'NULL - NOT INITIALIZED');
+    
     let report = null;
     
     // Primary: Get report from Supabase (this is what works on Vercel)
-    if (supabase) {
-      try {
-        console.log(`🔍 Attempting to load report ${id} from Supabase...`);
-        const { data, error } = await supabase
-          .from('well_reports')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (error) {
-          console.error('❌ Error loading report from Supabase:', error);
-          console.error('   Error code:', error.code);
-          console.error('   Error message:', error.message);
-          console.error('   Error details:', error.details);
-          console.error('   Error hint:', error.hint);
-          // If it's a "not found" error (PGRST116), return 404
-          if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
-            console.log(`⚠️ Report ${id} not found in Supabase`);
-            return res.status(404).json({ 
-              error: 'Report not found',
-              details: `No report found with ID: ${id}`
-            });
-          }
-          // If it's an RLS error, return a more helpful message
-          if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
-            return res.status(403).json({ 
-              error: 'Row Level Security is blocking access. Please disable RLS on well_reports table or check service role key.',
-              details: error.message 
-            });
-          }
-          // Return the error instead of continuing to fallback
-          return res.status(500).json({ 
-            error: 'Failed to load report from Supabase',
-            details: error.message 
+    if (!supabase) {
+      console.error('❌ Supabase client is NULL - cannot query reports');
+      return res.status(500).json({ 
+        error: 'Database not available',
+        details: 'Supabase client not initialized. Check environment variables.'
+      });
+    }
+    
+    try {
+      console.log(`🔍 Attempting to load report ${id} from Supabase...`);
+      const { data, error } = await supabase
+        .from('well_reports')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      console.log(`📊 Supabase query result:`, { 
+        hasData: !!data, 
+        hasError: !!error,
+        errorCode: error?.code,
+        errorMessage: error?.message 
+      });
+      
+      if (error) {
+        console.error('❌ Error loading report from Supabase:', error);
+        console.error('   Error code:', error.code);
+        console.error('   Error message:', error.message);
+        console.error('   Error details:', error.details);
+        console.error('   Error hint:', error.hint);
+        // If it's a "not found" error (PGRST116), return 404
+        if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('0 rows')) {
+          console.log(`⚠️ Report ${id} not found in Supabase (PGRST116 or No rows)`);
+          return res.status(404).json({ 
+            error: 'Report not found',
+            details: `No report found with ID: ${id}`,
+            errorCode: error.code
           });
-        } else if (data) {
-          console.log(`✅ Found report ${id} in Supabase`);
-          // Map Supabase format to expected format (with data property for admin site compatibility)
-          report = {
-            id: data.id,
-            jobId: data.job_id,
-            job_id: data.job_id,
-            createdAt: data.created_at,
-            created_at: data.created_at,
-            updatedAt: data.updated_at,
-            updated_at: data.updated_at,
-            // Wrap report fields in 'data' property for admin site compatibility
-            data: {
-              flowReadings: data.flow_readings || [],
-              flow_readings: data.flow_readings || [],
-              waterQuality: data.water_quality || {},
-              water_quality: data.water_quality || {},
-              photos: data.photos || [],
-              notes: data.notes || '',
-              recommendations: data.recommendations || '',
-              wellBasics: data.well_basics || {},
-              well_basics: data.well_basics || {},
-              systemEquipment: data.system_equipment || {},
-              system_equipment: data.system_equipment || {},
-            },
-            // Also include fields directly for backward compatibility
-            flow_readings: data.flow_readings || [],
+        }
+        // If it's an RLS error, return a more helpful message
+        if (error.message?.includes('row-level security') || error.message?.includes('RLS') || error.message?.includes('permission denied')) {
+          console.error('🔒 RLS Error detected!');
+          return res.status(403).json({ 
+            error: 'Row Level Security is blocking access. Please disable RLS on well_reports table or check service role key.',
+            details: error.message,
+            errorCode: error.code
+          });
+        }
+        // Return the error instead of continuing to fallback
+        return res.status(500).json({ 
+          error: 'Failed to load report from Supabase',
+          details: error.message,
+          errorCode: error.code
+        });
+      }
+      
+      if (data) {
+        console.log(`✅ Found report ${id} in Supabase`);
+        console.log(`   Report data keys:`, Object.keys(data));
+        // Map Supabase format to expected format (with data property for admin site compatibility)
+        report = {
+          id: data.id,
+          jobId: data.job_id,
+          job_id: data.job_id,
+          createdAt: data.created_at,
+          created_at: data.created_at,
+          updatedAt: data.updated_at,
+          updated_at: data.updated_at,
+          // Wrap report fields in 'data' property for admin site compatibility
+          data: {
             flowReadings: data.flow_readings || [],
-            water_quality: data.water_quality || {},
+            flow_readings: data.flow_readings || [],
             waterQuality: data.water_quality || {},
+            water_quality: data.water_quality || {},
             photos: data.photos || [],
             notes: data.notes || '',
             recommendations: data.recommendations || '',
-            well_basics: data.well_basics || {},
             wellBasics: data.well_basics || {},
-            system_equipment: data.system_equipment || {},
+            well_basics: data.well_basics || {},
             systemEquipment: data.system_equipment || {},
-          };
-          console.log(`✅ Loaded report ${id} from Supabase`);
-          return res.json(report);
-        }
-      } catch (supabaseErr) {
-        console.error('Supabase error loading report:', supabaseErr);
-      }
-    }
-    
-    // Fallback: Try local JSON (development only)
-    try {
-      const reports = await readDataFile('reports.json');
-      report = reports.find(r => r.id === id);
-      if (report) {
-        console.log(`✅ Loaded report ${id} from local JSON`);
+            system_equipment: data.system_equipment || {},
+          },
+          // Also include fields directly for backward compatibility
+          flow_readings: data.flow_readings || [],
+          flowReadings: data.flow_readings || [],
+          water_quality: data.water_quality || {},
+          waterQuality: data.water_quality || {},
+          photos: data.photos || [],
+          notes: data.notes || '',
+          recommendations: data.recommendations || '',
+          well_basics: data.well_basics || {},
+          wellBasics: data.well_basics || {},
+          system_equipment: data.system_equipment || {},
+          systemEquipment: data.system_equipment || {},
+        };
+        console.log(`✅ Loaded report ${id} from Supabase - returning response`);
         return res.json(report);
+      } else {
+        console.log(`⚠️ Supabase query returned no data and no error for report ${id}`);
+        return res.status(404).json({ 
+          error: 'Report not found',
+          details: `No data returned for ID: ${id}`
+        });
       }
-    } catch (error) {
-      console.log('Local file system not available (expected on Vercel)');
+    } catch (supabaseErr) {
+      console.error('❌ Exception in Supabase query:', supabaseErr);
+      console.error('   Stack:', supabaseErr.stack);
+      return res.status(500).json({ 
+        error: 'Database query failed',
+        details: supabaseErr.message || 'Unknown error'
+      });
     }
-    
-    console.log(`⚠️ No report found with ID ${id}`);
-    return res.status(404).json({ error: 'Report not found' });
   } catch (error) {
-    console.error('Error in /api/reports/:id:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Error in /api/reports/:id:', error);
+    console.error('   Stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
   }
 });
 
